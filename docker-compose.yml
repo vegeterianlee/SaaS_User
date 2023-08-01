@@ -8,8 +8,8 @@ services:
       - "82:8080"
     volumes:
       - ./src:/app/src
-    links:
-      - saas-db:db
+    env_file:
+      - .env
     networks:
       - saas-network
 
