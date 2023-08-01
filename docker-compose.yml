@@ -4,16 +4,12 @@ services:
   user:
     build: .
     container_name: SaaS-user
-    env_file:
-      - .env
-    depends_on:
-      - db
     ports:
       - "82:8080"
-
     volumes:
       - ./src:/app/src
-
+    external_links:
+      - pay-db:db
     networks:
       - saas-pay-network
       - saas-user-network
