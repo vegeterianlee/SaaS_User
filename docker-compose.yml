@@ -9,7 +9,7 @@ services:
     volumes:
       - ./src:/app/src
     external_links:
-      - pay-db:db
+      - saas-db:db
     networks:
       - saas-network
 
