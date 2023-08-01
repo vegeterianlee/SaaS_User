@@ -28,4 +28,5 @@ volumes:
 
 networks:
   saas-network:
+    name: saas-network
     driver: bridge
