@@ -11,9 +11,7 @@ services:
     external_links:
       - pay-db:db
     networks:
-      - saas-pay-network
-      - saas-user-network
-      - de-identify-network
+      - saas-network
 
   nginx:
     build: ./nginx
@@ -23,15 +21,11 @@ services:
     depends_on:
       - user
     networks:
-      - saas-user-network
+      - saas-network
 
 volumes:
   mysql:
 
 networks:
-  saas-pay-network:
-    driver: bridge
-  saas-user-network:
-    driver: bridge
-  de-identify-network:
+  saas-network:
     driver: bridge
