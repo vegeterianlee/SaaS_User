@@ -15,7 +15,9 @@ services:
       - ./src:/app/src
 
     networks:
+      - saas-pay-network
       - saas-user-network
+      - de-identify-network
 
   nginx:
     build: ./nginx
@@ -31,5 +33,9 @@ volumes:
   mysql:
 
 networks:
-  saas-pay:
+  saas-pay-network:
+    driver: bridge
+  saas-user-network:
+    driver: bridge
+  de-identify-network:
     driver: bridge
