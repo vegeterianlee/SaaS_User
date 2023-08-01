@@ -1,6 +1,7 @@
 package com.imcloud.saas_user.common.entity;
 
 
+import com.imcloud.saas_user.common.entity.enums.Product;
 import com.imcloud.saas_user.common.entity.enums.UserRole;
 import com.imcloud.saas_user.member.dto.SignupRequestDto;
 import lombok.AllArgsConstructor;
@@ -9,6 +10,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.util.Optional;
 import java.util.Set;
 
 @Entity(name = "members")
@@ -44,10 +46,13 @@ public class Member extends Timestamped {
     @Column(nullable = false)
     private UserRole role;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = true)
+    private Product product;
+
 
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "member", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private Set<Board> boardSet;
-
 
 
 
@@ -60,6 +65,7 @@ public class Member extends Timestamped {
                 .phone(signupRequestDto.getPhone())
                 .institution(signupRequestDto.getInstitution())
                 .role(UserRole.User)
+                .product(Product.STANDARD)
                 .build();
     }
 
@@ -68,5 +74,9 @@ public class Member extends Timestamped {
     }
     public void setRole(UserRole role) {
         this.role = role;
+    }
+
+    public void setProduct(Product product) {
+        this.product = product;
     }
 }

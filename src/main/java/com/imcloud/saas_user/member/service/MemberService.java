@@ -33,12 +33,19 @@ public class MemberService {
     @Transactional
     public MemberResponseDto signup(SignupRequestDto signupRequestDto) {
         String userId = signupRequestDto.getUserId();
+        String username = signupRequestDto.getUsername();
         String encodedPassword = passwordEncoder.encode(signupRequestDto.getPassword());
 
         // userId 중복 확인
         Optional<Member> found = memberRepository.findByUserId(userId);
         if (found.isPresent()) {
             throw new IllegalArgumentException(ErrorMessage.USERID_DUPLICATION.getMessage());
+        }
+
+        // username 중복 확인
+        Optional<Member> founded = memberRepository.findByUsername(username);
+        if (founded.isPresent()) {
+            throw new IllegalArgumentException(ErrorMessage.USERNAME_DUPLICATION.getMessage());
         }
 
         Member newMember = Member.create(signupRequestDto, encodedPassword);

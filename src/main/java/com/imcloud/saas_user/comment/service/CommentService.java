@@ -1,7 +1,5 @@
 package com.imcloud.saas_user.comment.service;
 
-import com.imcloud.saas_user.board.dto.BoardRequestDto;
-import com.imcloud.saas_user.board.dto.BoardResponseDto;
 import com.imcloud.saas_user.comment.dto.CommentRequestDto;
 import com.imcloud.saas_user.comment.dto.CommentResponseDto;
 import com.imcloud.saas_user.common.dto.ErrorMessage;

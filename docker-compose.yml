@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  user:
+    build: .
+    container_name: SaaS-user
+    env_file:
+      - .env
+    depends_on:
+      - db
+    ports:
+      - "82:8080"
+
+    volumes:
+      - ./src:/app/src
+
+    networks:
+      - saas-user-network
+
+  nginx:
+    build: ./nginx
+    container_name: user-nginx
+    ports:
+      - "92:90"
+    depends_on:
+      - user
+    networks:
+      - saas-user-network
+
+volumes:
+  mysql:
+
+networks:
+  saas-pay:
+    driver: bridge
