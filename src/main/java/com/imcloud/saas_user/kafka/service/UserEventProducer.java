@@ -27,7 +27,7 @@ public class UserEventProducer {
             kafkaTemplate.send(user_to_pay_topic, userEvent);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
-            // Proper exception handling to be done
+            System.out.println("Failed to process message: " + e.getMessage());
         }
     }
 }
