@@ -55,7 +55,7 @@ dependencies {
     //kafka setting
     implementation 'org.springframework.kafka:spring-kafka'
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.1'
-    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.1'
+
 
 
     implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity5'
