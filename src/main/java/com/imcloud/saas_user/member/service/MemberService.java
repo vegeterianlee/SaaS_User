@@ -19,6 +19,7 @@ import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletResponse;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
+import com.imcloud.saas_user.kafka.service.UserEventProducer;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +29,7 @@ public class MemberService {
     private String adminTokenValue;
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
+    private final UserEventProducer userEventProducer;
     private final MemberRepository memberRepository;
 
     @Transactional
@@ -105,6 +107,9 @@ public class MemberService {
         );
         // 회원 정보 삭제
         memberRepository.delete(member);
+
+        // 구독하고 있던 제품은 inactive로 바꾸기
+        userEventProducer.sendUserDetails(userDetails);
     }
 
     @Transactional
@@ -122,4 +127,5 @@ public class MemberService {
         // promote to admin
         member.setRole(UserRole.Admin);
     }
+
 }
