@@ -99,7 +99,7 @@ public class MemberService {
         memberRepository.save(member);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public void deleteMember(UserDetailsImpl userDetails) {
         // 사용자 확인
         Member member = memberRepository.findByUserId(userDetails.getUser().getUserId()).orElseThrow(
@@ -109,8 +109,8 @@ public class MemberService {
         // 구독하고 있던 제품은 inactive로 바꾸기
         userEventProducer.sendUserDetails(member.getUserId());
 
-        // 회원 정보 삭제
-        memberRepository.delete(member);
+        // 회원 정보 삭제는 UserEventConsumer에서 처리해줌
+        // 따로 delete method가 필요한 것이 아님
     }
 
     @Transactional
