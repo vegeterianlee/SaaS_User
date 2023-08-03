@@ -109,7 +109,7 @@ public class MemberService {
         memberRepository.delete(member);
 
         // 구독하고 있던 제품은 inactive로 바꾸기
-        userEventProducer.sendUserDetails(userDetails);
+        userEventProducer.sendUserDetails(member.getUserId());
     }
 
     @Transactional
