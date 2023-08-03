@@ -105,11 +105,12 @@ public class MemberService {
         Member member = memberRepository.findByUserId(userDetails.getUser().getUserId()).orElseThrow(
                 () -> new EntityNotFoundException(ErrorMessage.WRONG_USERID.getMessage())
         );
-        // 회원 정보 삭제
-        memberRepository.delete(member);
 
         // 구독하고 있던 제품은 inactive로 바꾸기
         userEventProducer.sendUserDetails(member.getUserId());
+
+        // 회원 정보 삭제
+        memberRepository.delete(member);
     }
 
     @Transactional
