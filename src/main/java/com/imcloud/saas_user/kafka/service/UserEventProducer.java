@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Value;
 
 @Service
 public class UserEventProducer {
-
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper objectMapper;
 
@@ -25,9 +24,9 @@ public class UserEventProducer {
 
     public void sendUserDetails(UserDetailsImpl userDetails) {
         try {
-            String userEvent = objectMapper.writeValueAsString(userDetails); // Convert userDetails to a JSON String
-            kafkaTemplate.send(user_to_pay_topic, userEvent);
-        } catch (JsonProcessingException e) {
+            String userId = userDetails.getUsername();
+            kafkaTemplate.send(user_to_pay_topic, userId);
+        } catch (Exception e) {
             e.printStackTrace();
             System.out.println("Failed to process message: " + e.getMessage());
         }
