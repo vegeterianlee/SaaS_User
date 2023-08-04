@@ -3,7 +3,7 @@ version: '3.8'
 services:
   user:
     build: .
-    container_name: SaaS-user
+    container_name: saas-user
     ports:
       - "82:8080"
     volumes:
