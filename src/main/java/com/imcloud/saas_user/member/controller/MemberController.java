@@ -46,7 +46,7 @@ public class MemberController {
     @PostMapping("/updateProfile")
     @Operation(summary = "프로필 수정", description = "username, email, password, institution 수정 가능 (수정하지 않아도 됨)")
     public ApiResponse<MemberResponseDto> update(
-            @RequestBody ProfileUpdateRequestDto dto,
+            @RequestBody @Valid ProfileUpdateRequestDto dto,
             @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {
         return ApiResponse.successOf(HttpStatus.OK, memberService.updateProfile(userDetails, dto));
