@@ -46,8 +46,8 @@ public class MemberResponseDto {
                 .phone(member.getPhone())
                 .institution(member.getInstitution())
                 .product(member.getProduct())
-                .createdAt(member.getCreated_at())
-                .modifiedAt(member.getModified_at())
+                .createdAt(member.getCreatedAt())
+                .modifiedAt(member.getModifiedAt())
                 .build();
     }
 

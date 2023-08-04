@@ -64,8 +64,8 @@ public class BoardResponseDto {
                 .title(board.getTitle())
                 .username(board.getMember().getUsername())
                 .content(board.getContent())
-                .createdAt(board.getCreated_at())
-                .modifiedAt(board.getModified_at());
+                .createdAt(board.getCreatedAt())
+                .modifiedAt(board.getModifiedAt());
 //                .viewCount(board.getViewCount())
 //               .wishCount(ObjectUtils.defaultIfNull(board.getWishes(), new HashSet<>()).size());
         return builder.build();

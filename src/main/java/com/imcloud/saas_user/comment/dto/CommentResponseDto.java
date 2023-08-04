@@ -38,8 +38,8 @@ public class CommentResponseDto {
                 .boardId(comment.getBoard().getId())
                 .username(comment.getMember().getUsername())
                 .content(comment.getContent())
-                .createdAt(comment.getCreated_at())
-                .modifiedAt(comment.getModified_at());
+                .createdAt(comment.getCreatedAt())
+                .modifiedAt(comment.getModifiedAt());
         return builder.build();
     }
 }
