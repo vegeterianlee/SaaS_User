@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.lang.Nullable;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.Pattern;
@@ -16,22 +17,27 @@ import java.util.Optional;
 @NoArgsConstructor
 public class ProfileUpdateRequestDto {
 
+    @Nullable
     @Pattern(regexp = "^[a-zA-Z가-힣ㄱ-ㅎㅏ-ㅣ0-9]{2,8}$", message = "잘못된 양식의 닉네임을 입력하셨습니다.")
     @Schema(description = "/^[a-zA-Z가-힣ㄱ-ㅎㅏ-ㅣ0-9]{2,8}$/")
-    private Optional<String> username;
+    private String username;
 
+    @Nullable
     @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d$@$!%*#?&]{8,}$", message = "잘못된 양식의 비밀번호를 입력하셨습니다.")
     @Schema(description = "/^(?=.*[A-Za-z])(?=.*\\d)(?=.*[$@$!%*#?&])[A-Za-z\\d$@$!%*#?&]{8,}$/")
-    private Optional<String> newPassword;
+    private String newPassword;
 
+    @Nullable
     @Pattern(regexp = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$", message = "잘못된 양식의 이메일을 입력하셨습니다.")
     @Schema(description = "/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$/")
-    private Optional<String> email;
+    private String email;
 
+    @Nullable
     @Pattern(regexp = "^\\d{3}-\\d{3,4}-\\d{4}$", message = "잘못된 양식의 전화번호를 입력하셨습니다.")
     @Schema(description = "휴대폰 번호는 010-1234-5678 형식으로 작성")
-    private Optional<String> phone;
+    private String phone;
 
+    @Nullable
     @Schema(description = "기관명")
-    private Optional<String> institution;
+    private String institution;
 }
