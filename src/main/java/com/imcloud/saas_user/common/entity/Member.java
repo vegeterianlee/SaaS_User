@@ -4,10 +4,7 @@ package com.imcloud.saas_user.common.entity;
 import com.imcloud.saas_user.common.entity.enums.Product;
 import com.imcloud.saas_user.common.entity.enums.UserRole;
 import com.imcloud.saas_user.member.dto.SignupRequestDto;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 import java.util.Optional;
@@ -15,6 +12,7 @@ import java.util.Set;
 
 @Entity(name = "members")
 @Getter
+@Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -30,7 +28,7 @@ public class Member extends Timestamped {
     @Column(nullable = false)
     private String password;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String username;
 
     @Column(nullable = false)
@@ -65,7 +63,7 @@ public class Member extends Timestamped {
                 .phone(signupRequestDto.getPhone())
                 .institution(signupRequestDto.getInstitution())
                 .role(UserRole.User)
-                .product(Product.STANDARD)
+                .product(Product.ENTERPRISE)
                 .build();
     }
 

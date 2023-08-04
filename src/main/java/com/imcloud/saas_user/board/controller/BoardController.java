@@ -72,21 +72,13 @@ public class BoardController {
 
     @DeleteMapping("/specific")
     @Operation(summary = "게시글 삭제", description = "특정 boardId의 게시글 삭제")
-    public ApiResponse<BoardResponseDto> deleteBoard(
+    public ApiResponse<String> deleteBoard(
             @RequestParam Long boardId,
             @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {
         boardService.deleteBoard(boardId, userDetails);
-        return ApiResponse.successOf(HttpStatus.NO_CONTENT, null);
+        return ApiResponse.successOf(HttpStatus.NO_CONTENT, "게시글 삭제 완료");
     }
 
-    @DeleteMapping("/admin")
-    @Operation(summary = "게시글 삭제", description = "특정 boardId의 admin 권한으로 게시글 삭제")
-    public ApiResponse<BoardResponseDto> deleteBoardByAdmin(
-            @RequestParam Long boardId,
-            @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails
-    ) {
-        boardService.deleteBoardByAdmin(boardId, userDetails);
-        return ApiResponse.successOf(HttpStatus.NO_CONTENT, null);
-    }
+
 }

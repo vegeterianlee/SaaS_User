@@ -108,15 +108,5 @@ public class BoardService {
         boardRepository.deleteById(board.getId());
     }
 
-    @Transactional
-    public void deleteBoardByAdmin(Long boardId, UserDetailsImpl userDetails) {
-        Board board = boardRepository.findById(boardId).orElseThrow(
-                () -> new EntityNotFoundException(ErrorMessage.BOARD_NOT_FOUND.getMessage())
-        );
 
-        if (!userDetails.getUser().getRole().equals(UserRole.Admin)){
-            throw new AccessDeniedException(ErrorMessage.ACCESS_DENIED.getMessage());
-        }
-        boardRepository.deleteById(board.getId());
-    }
 }

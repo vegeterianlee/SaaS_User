@@ -14,20 +14,20 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
     Optional<Board> findById(Long boardId);
     Optional<Board> findByTitle(String title);
 
-    @Query("select b from boards b where b.member.id = :memberId")
+    @Query("select b from boards b where b.member.id = :memberId ORDER BY b.id DESC")
     @EntityGraph(attributePaths = {
             "member"
     })
     Page<Board> findBoardsByMemberIdJPQL(Long memberId, Pageable pageable);
 
-    @Query("select b from boards b where b.member.userId = :userId")
+    @Query("select b from boards b where b.member.userId = :userId ORDER BY b.id DESC")
     @EntityGraph(attributePaths = {
             "member"
     })
     Page<Board> findBoardsByUserIdJPQL(String userId, Pageable pageable);
 
 
-    @Query("select b from boards b")
+    @Query("select b from boards b ORDER BY b.id DESC")
     @EntityGraph(attributePaths = {
             "member"
     })

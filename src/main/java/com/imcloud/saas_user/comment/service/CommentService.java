@@ -112,15 +112,5 @@ public class CommentService {
         commentRepository.deleteById(comment.getId());
     }
 
-    @Transactional
-    public void deleteCommentByAdmin(Long CommentId, UserDetailsImpl userDetails) {
-        Comment comment = commentRepository.findById(CommentId).orElseThrow(
-                () -> new EntityNotFoundException(ErrorMessage.COMMENT_NOT_FOUND.getMessage())
-        );
 
-        if (!userDetails.getUser().getRole().equals(UserRole.Admin)){
-            throw new AccessDeniedException(ErrorMessage.ACCESS_DENIED.getMessage());
-        }
-        commentRepository.deleteById(comment.getId());
-    }
 }

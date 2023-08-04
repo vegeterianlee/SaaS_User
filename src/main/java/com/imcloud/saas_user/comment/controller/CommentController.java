@@ -73,21 +73,13 @@ public class CommentController {
 
     @DeleteMapping("/specific")
     @Operation(summary = "댓글 삭제", description = "특정 댓글 삭제")
-    public ApiResponse<CommentResponseDto> deleteComment(
+    public ApiResponse<String> deleteComment(
             @RequestParam Long commentId,
             @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {
         commentService.deleteComment(commentId, userDetails);
-        return ApiResponse.successOf(HttpStatus.NO_CONTENT, null);
+        return ApiResponse.successOf(HttpStatus.NO_CONTENT, "댓글 삭제 완료");
     }
 
-    @DeleteMapping("/admin")
-    @Operation(summary = "댓글 삭제", description = "특정 CommentId의 admin 권한으로 comment 삭제")
-    public ApiResponse<BoardResponseDto> deleteCommentByAdmin(
-            @RequestParam Long commentId,
-            @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails
-    ) {
-        commentService.deleteCommentByAdmin(commentId, userDetails);
-        return ApiResponse.successOf(HttpStatus.NO_CONTENT, null);
-    }
+
 }

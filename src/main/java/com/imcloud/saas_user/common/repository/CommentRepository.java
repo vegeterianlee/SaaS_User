@@ -9,14 +9,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Query;
 public interface CommentRepository extends JpaRepository<Comment, Long>{
-    @Query("select c from comments c where c.board.id = :boardId")
+    @Query("select c from comments c where c.board.id = :boardId ORDER BY c.id DESC")
     @EntityGraph(attributePaths = {
             "board", "member"
     })
     Page<Comment> findCommentsByBoardIdJPQL(Long boardId, Pageable pageable);
 
 
-    @Query("select c from comments c where c.member.userId = :userId")
+    @Query("select c from comments c where c.member.userId = :userId ORDER BY c.id DESC")
     @EntityGraph(attributePaths = {
             "board", "member"
     })

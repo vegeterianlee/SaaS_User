@@ -2,24 +2,35 @@ package com.imcloud.saas_user.member.service;
 
 import com.imcloud.saas_user.common.dto.ErrorMessage;
 import com.imcloud.saas_user.common.entity.Member;
+import com.imcloud.saas_user.common.entity.enums.Product;
 import com.imcloud.saas_user.common.entity.enums.UserRole;
 import com.imcloud.saas_user.common.jwt.JwtUtil;
 import com.imcloud.saas_user.common.repository.MemberRepository;
 import com.imcloud.saas_user.common.security.UserDetailsImpl;
 import com.imcloud.saas_user.member.dto.LoginRequestDto;
 import com.imcloud.saas_user.member.dto.MemberResponseDto;
+import com.imcloud.saas_user.member.dto.ProfileUpdateRequestDto;
 import com.imcloud.saas_user.member.dto.SignupRequestDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletResponse;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import com.imcloud.saas_user.kafka.service.UserEventProducer;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Flux;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +42,13 @@ public class MemberService {
     private final PasswordEncoder passwordEncoder;
     private final UserEventProducer userEventProducer;
     private final MemberRepository memberRepository;
+   /* private final WebClient.Builder webClientBuilder;
+    private  WebClient paymentClient;
+
+    @PostConstruct
+    public void init() {
+        this.paymentClient = this.webClientBuilder.baseUrl("http://localhost:81/api/payments").build();
+    }*/
 
     @Transactional
     public MemberResponseDto signup(SignupRequestDto signupRequestDto) {
@@ -99,6 +117,27 @@ public class MemberService {
         memberRepository.save(member);
     }
 
+    @Transactional
+    public MemberResponseDto updateProfile(UserDetailsImpl userDetails, ProfileUpdateRequestDto requestDto) {
+        // Check that the user exists
+        Member member = memberRepository.findByUserId(userDetails.getUser().getUserId()).orElseThrow(
+                () -> new EntityNotFoundException(ErrorMessage.WRONG_USERID.getMessage())
+        );
+
+        // Update the member's profile information if the update fields are present
+        requestDto.getUsername().ifPresent(member::setUsername);
+        requestDto.getPhone().ifPresent(member::setPhone);
+        requestDto.getEmail().ifPresent(member::setEmail);
+        requestDto.getInstitution().ifPresent(member::setInstitution);
+
+        if (requestDto.getNewPassword().isPresent()) {
+            member.setPassword(passwordEncoder.encode(requestDto.getNewPassword().get()));
+        }
+
+        // Return a response
+        return MemberResponseDto.of(member);
+    }
+
     @Transactional(readOnly = true)
     public void deleteMember(UserDetailsImpl userDetails) {
         // 사용자 확인
@@ -107,7 +146,7 @@ public class MemberService {
         );
 
         // 구독하고 있던 제품은 inactive로 바꾸기
-        userEventProducer.sendUserDetails(member.getUserId());
+        userEventProducer.sendUserId(member.getUserId());
 
         // 회원 정보 삭제는 UserEventConsumer에서 처리해줌
         // 따로 delete method가 필요한 것이 아님
@@ -128,5 +167,29 @@ public class MemberService {
         // promote to admin
         member.setRole(UserRole.Admin);
     }
+
+    /*@Transactional
+    @Scheduled(cron = "0 0/10 * * * *") // Every 10 minutes
+    public void checkAndAssignSubscription() {
+        // 3일 전 날짜 계산
+        LocalDateTime threeDaysAgo = LocalDateTime.now().minusDays(3);
+
+        // 3일 전에 생성된 멤버 찾기
+        List<Member> members = memberRepository.findAllByCreatedAtBefore(threeDaysAgo);
+
+        Flux.fromIterable(members)
+                .flatMap(member -> paymentClient.get()
+                        .uri("/" + member.getId())
+                        .retrieve()
+                        .bodyToMono(Boolean.class)
+                        .map(isActive -> {
+                            if (isActive != null && !isActive) {
+                                member.setProduct(Product.STANDARD);
+                            }
+                            return member;
+                        }))
+                .doOnNext(memberRepository::save)
+                .subscribe();
+    }*/
 
 }

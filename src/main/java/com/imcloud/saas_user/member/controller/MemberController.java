@@ -4,6 +4,7 @@ import com.imcloud.saas_user.common.dto.ApiResponse;
 import com.imcloud.saas_user.common.security.UserDetailsImpl;
 import com.imcloud.saas_user.member.dto.LoginRequestDto;
 import com.imcloud.saas_user.member.dto.MemberResponseDto;
+import com.imcloud.saas_user.member.dto.ProfileUpdateRequestDto;
 import com.imcloud.saas_user.member.dto.SignupRequestDto;
 import com.imcloud.saas_user.member.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -40,6 +41,15 @@ public class MemberController {
             @Parameter(hidden = true) HttpServletResponse response
     ) {
         return ApiResponse.successOf(HttpStatus.OK, memberService.login(loginRequestDto, response));
+    }
+
+    @PostMapping("/updateProfile")
+    @Operation(summary = "프로필 수정", description = "username, email, password, institution 수정 가능 (수정하지 않아도 됨)")
+    public ApiResponse<MemberResponseDto> update(
+            @RequestBody ProfileUpdateRequestDto dto,
+            @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails
+    ) {
+        return ApiResponse.successOf(HttpStatus.OK, memberService.updateProfile(userDetails, dto));
     }
 
     @GetMapping("/userId/duplicate")
