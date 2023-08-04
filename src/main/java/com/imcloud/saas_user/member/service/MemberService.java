@@ -125,15 +125,21 @@ public class MemberService {
         );
 
         // Update the member's profile information if the update fields are present
-        requestDto.getUsername().ifPresent(member::setUsername);
-        requestDto.getPhone().ifPresent(member::setPhone);
-        requestDto.getEmail().ifPresent(member::setEmail);
-        requestDto.getInstitution().ifPresent(member::setInstitution);
-
-        if (requestDto.getNewPassword().isPresent()) {
-            member.setPassword(passwordEncoder.encode(requestDto.getNewPassword().get()));
+        if (requestDto.getUsername() != null) {
+            member.setUsername(requestDto.getUsername());
         }
-
+        if (requestDto.getPhone() != null) {
+            member.setPhone(requestDto.getPhone());
+        }
+        if (requestDto.getEmail() != null) {
+            member.setEmail(requestDto.getEmail());
+        }
+        if (requestDto.getInstitution() != null) {
+            member.setInstitution(requestDto.getInstitution());
+        }
+        if (requestDto.getNewPassword() != null) {
+            member.setPassword(passwordEncoder.encode(requestDto.getNewPassword()));
+        }
         // Return a response
         return MemberResponseDto.of(member);
     }
