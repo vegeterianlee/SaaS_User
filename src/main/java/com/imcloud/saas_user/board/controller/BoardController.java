@@ -71,7 +71,7 @@ public class BoardController {
     }
 
     @DeleteMapping("/specific")
-    @Operation(summary = "게시글 삭제 (Delete a board on specific boardId", description = "특정 boardId의 게시글 삭제")
+    @Operation(summary = "게시글 삭제 (Delete a board on specific boardId)", description = "특정 boardId의 게시글 삭제")
     public ApiResponse<String> deleteBoard(
             @RequestParam Long boardId,
             @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails

@@ -79,7 +79,7 @@ public class MemberController {
     }
 
     @GetMapping("/withdrawal")
-    @Operation(summary = "Membership Withdrawal", description = "return String(회원 탈퇴 완료)")
+    @Operation(summary = "Membership Withdrawal", description = "IsActive in subscription changed to 0x00")
     public ApiResponse<String> deleteMember(
             @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails){
         memberService.deleteMember(userDetails);
@@ -87,7 +87,7 @@ public class MemberController {
     }
 
     @GetMapping("/admin")
-    @Operation(summary = "Role change Admin", description = "return String(관리자로 변경 완료)")
+    @Operation(summary = "Role change Admin", description = "Change to Administrator Completed")
     public ApiResponse<String> changeRole(
             @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails,
             @RequestParam String adminToken){
