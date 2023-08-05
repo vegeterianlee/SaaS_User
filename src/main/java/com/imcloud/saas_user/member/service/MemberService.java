@@ -171,7 +171,7 @@ public class MemberService {
         }
 
         // promote to admin
-        member.setRole(UserRole.Admin);
+        member.setRole(UserRole.ADMIN);
     }
 
     /*@Transactional

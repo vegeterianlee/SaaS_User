@@ -62,7 +62,7 @@ public class Member extends Timestamped {
                 .password(encodedPassword)
                 .phone(signupRequestDto.getPhone())
                 .institution(signupRequestDto.getInstitution())
-                .role(UserRole.User)
+                .role(UserRole.USER)
                 .product(Product.ENTERPRISE)
                 .build();
     }
