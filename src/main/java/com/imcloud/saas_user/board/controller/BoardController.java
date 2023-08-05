@@ -26,7 +26,7 @@ public class BoardController {
     private final BoardService boardService;
 
     @PostMapping
-    @Operation(summary = "게시글 작성", description = "건의사항 등의 게시글 작성")
+    @Operation(summary = "게시글 작성 (Create Boards)", description = "문의사항 등의 게시글 작성 (Writing posts such as inquiries)")
     public ApiResponse<BoardResponseDto> createBoard(
             @RequestBody @Valid BoardRequestDto dto,
             @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails) {
@@ -34,7 +34,7 @@ public class BoardController {
     }
 
     @GetMapping("/specific")
-    @Operation(summary = "게시글 조회", description ="특정 boardId를 갖는 단일 게시글 조회")
+    @Operation(summary = "게시글 조회 (get a board by boardId) ", description ="특정 boardId를 갖는 단일 게시글 조회")
     public ApiResponse<BoardResponseDto> getSpecificBoard(
             @RequestParam Long boardId,
             @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails) {
@@ -42,7 +42,7 @@ public class BoardController {
     }
 
     @GetMapping("/search")
-    @Operation(summary = "유저의 게시글 조회", description = "유저의 게시글 목록 조회, page는 1부터 시작")
+    @Operation(summary = "유저의 게시글 조회 (get all user's boards)", description = "Page starts with 1, sort in descending order")
     public ApiResponse<Page<BoardResponseDto>> searchBoards(
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
@@ -51,7 +51,7 @@ public class BoardController {
     }
 
     @GetMapping("/allsearch")
-    @Operation(summary = "모든 게시글 조회", description = "모든 유저의 게시글 조회, page는 1부터 시작")
+    @Operation(summary = "모든 게시글 조회 (get all boards)", description = "Page starts with 1, sort in descending order")
     public ApiResponse<Page<BoardResponseDto>> getBoard(
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
@@ -61,7 +61,7 @@ public class BoardController {
     }
 
     @PutMapping("/specific")
-    @Operation(summary = "게시글 수정", description = "특정 boardId의 게시글 수정")
+    @Operation(summary = "게시글 수정 (Modify a board on specific boardId)", description = "특정 boardId의 게시글 수정")
     public ApiResponse<BoardResponseDto> updateBoard(
             @RequestParam Long boardId,
             @RequestBody @Valid BoardRequestDto dto,
@@ -71,7 +71,7 @@ public class BoardController {
     }
 
     @DeleteMapping("/specific")
-    @Operation(summary = "게시글 삭제", description = "특정 boardId의 게시글 삭제")
+    @Operation(summary = "게시글 삭제 (Delete a board on specific boardId", description = "특정 boardId의 게시글 삭제")
     public ApiResponse<String> deleteBoard(
             @RequestParam Long boardId,
             @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails

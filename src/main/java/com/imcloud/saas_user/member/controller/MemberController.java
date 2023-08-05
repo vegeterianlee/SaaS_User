@@ -28,14 +28,16 @@ public class MemberController {
 
     @PostMapping("/signup")
     @SecurityRequirements()
-    @Operation(summary = "회원 가입", description = "userId은 영문숫자 조합 4자 이상, 10자 이하\n password은 영문숫자 조합 8자 이상, 15자 이하\n, username은 아무 문자 2자 이상 8자 이하")
+    @Operation(summary = "회원 가입 (create membership) ", description = "userId is an English numeric combination of 4 or more characters and 10 or less characters\n" +
+            "Password is an English number combination of 8 or more characters and 15 or less characters\n" +
+            "username is not less than 2 characters and not more than 8 characters")
     public ApiResponse<MemberResponseDto> signup(@RequestBody @Valid SignupRequestDto signupRequestDto) {
         return ApiResponse.successOf(HttpStatus.CREATED, memberService.signup(signupRequestDto));
     }
 
     @PostMapping("/login")
     @SecurityRequirements()
-    @Operation(summary = "로그인")
+    @Operation(summary = "로그인 (login)")
     public ApiResponse<MemberResponseDto> login(
             @RequestBody LoginRequestDto loginRequestDto,
             @Parameter(hidden = true) HttpServletResponse response
@@ -44,7 +46,7 @@ public class MemberController {
     }
 
     @PostMapping("/updateProfile")
-    @Operation(summary = "프로필 수정", description = "username, email, password, institution 수정 가능 (수정하지 않아도 됨)")
+    @Operation(summary = "프로필 수정", description = "username, email, password, institution can modfied (Modifying is optional)")
     public ApiResponse<MemberResponseDto> update(
             @RequestBody @Valid ProfileUpdateRequestDto dto,
             @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails
@@ -54,13 +56,13 @@ public class MemberController {
 
     @GetMapping("/userId/duplicate")
     @SecurityRequirements()
-    @Operation(summary = "아이디 중복체크", description = "아이디 중복이면 true, 중복이 아니면 false")
+    @Operation(summary = "아이디 중복체크 (Duplicate ID check)", description = "아이디 중복이면 true, 중복이 아니면 false (If the ID is duplicate, it's true. If it's not duplicate, it's false)")
     public ApiResponse<Boolean> checkEmail(@RequestParam String userId){
         return ApiResponse.successOf(HttpStatus.OK, memberService.checkUserId(userId));
     }
 
     @GetMapping
-    @Operation(summary = "토큰으로 member 정보 조회", description = "토큰으로 member 정보 조회")
+    @Operation(summary = "토큰으로 member 정보 조회 (Query member information with token)", description = "Query member information with token")
     public ApiResponse<MemberResponseDto> getUserByToken(
             @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {

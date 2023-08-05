@@ -25,7 +25,7 @@ public class CommentController {
     private final CommentService commentService;
 
     @PostMapping
-    @Operation(summary = "comment 작성", description = "건의사항 등의 게시글의 comment 작성")
+    @Operation(summary = "comment 작성 (create comment) ", description = "건의사항 등의 게시글의 comment 작성")
     public ApiResponse<CommentResponseDto> createBoard(
             @RequestBody @Valid CommentRequestDto dto,
             @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails,
@@ -34,7 +34,7 @@ public class CommentController {
     }
 
     @GetMapping("/specific")
-    @Operation(summary = "단일 comment 조회", description ="특정 commentId를 갖는 단일 comment 조회")
+    @Operation(summary = "단일 comment 조회 (get a comment) ", description ="특정 commentId를 갖는 단일 comment 조회")
     public ApiResponse<CommentResponseDto> getSpecificComment(
             @RequestParam Long commentId,
             @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails) {
@@ -42,7 +42,7 @@ public class CommentController {
     }
 
     @GetMapping("/fromUser")
-    @Operation(summary = "유저가 작성한 모든 comment들 조회", description = "유저가 작성한 모든 comment들 조회, page는 1부터 시작")
+    @Operation(summary = "유저가 작성한 모든 comment들 조회 (get all user's comments)", description = "Page starts with 1, sort in descending order")
     public ApiResponse<Page<CommentResponseDto>> getCommentsFromUser(
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
@@ -51,7 +51,7 @@ public class CommentController {
     }
 
     @GetMapping("/fromBoard")
-    @Operation(summary = "하나의 board에 해당하는 모든 comment들 조회", description = "하나의 board에 해당하는 모든 comment들 조회, page는 1부터 시작")
+    @Operation(summary = "하나의 board에 포함되는 모든 comment들 조회 (all comments belonging to OneToMany in the entered boardId)", description = "Page starts with 1, sort in descending order")
     public ApiResponse<Page<CommentResponseDto>> getCommentFromBoard(
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
@@ -62,7 +62,7 @@ public class CommentController {
     }
 
     @PutMapping("/specific")
-    @Operation(summary = "댓글 수정", description = "특정 댓글 수정")
+    @Operation(summary = "댓글 수정 (Modify comment)", description = "특정 댓글 수정")
     public ApiResponse<CommentResponseDto> updateComment(
             @RequestParam Long commentId,
             @RequestBody @Valid CommentRequestDto dto,
@@ -72,7 +72,7 @@ public class CommentController {
     }
 
     @DeleteMapping("/specific")
-    @Operation(summary = "댓글 삭제", description = "특정 댓글 삭제")
+    @Operation(summary = "댓글 삭제 (Delete comment", description = "특정 댓글 삭제")
     public ApiResponse<String> deleteComment(
             @RequestParam Long commentId,
             @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails
