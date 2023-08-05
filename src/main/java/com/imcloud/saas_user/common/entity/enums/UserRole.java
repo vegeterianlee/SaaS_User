@@ -7,8 +7,8 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum UserRole {
-    User("User"),
-    Admin("Admin");
+    User("USER"),
+    Admin("ADMIN");
 
     @JsonValue
     private final String value;
