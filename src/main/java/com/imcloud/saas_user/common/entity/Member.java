@@ -45,7 +45,7 @@ public class Member extends Timestamped {
     private UserRole role;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = true)
+    @Column(nullable = false)
     private Product product;
 
 
