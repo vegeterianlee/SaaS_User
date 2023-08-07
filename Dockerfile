@@ -29,6 +29,7 @@ WORKDIR /app
 
 # Copy the Gradle executable to the image
 COPY gradlew .
+RUN chmod +x ./gradlew
 COPY gradle gradle
 
 # Copy the build.gradle file
