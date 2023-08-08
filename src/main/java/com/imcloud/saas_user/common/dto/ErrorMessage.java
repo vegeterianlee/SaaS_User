@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum ErrorMessage {
     MEMBER_NOT_FOUND("해당 사용자가 존재하지 않습니다."),
+    SESSION_NOT_FOUND("해당 세션이 존재하지 않습니다."),
     BOARD_NOT_FOUND("해당 게시글이 존재하지 않습니다."),
     COMMENT_NOT_FOUND("해당 댓글이 존재하지 않습니다."),
     BLOG_NOT_FOUND("해당 블로그가 존재하지 않습니다."),
@@ -24,7 +25,9 @@ public enum ErrorMessage {
     WRONG_JWT_TOKEN("JWT Token이 잘못되었습니다."),
     NO_BLOG("블로그가 없습니다."),
     REDIS_TRY_LOCK_FAILED("Redis tryLock 함수를 실행하는 데 오류가 발생했습니다."),
-    REDIS_KEY_ACQUIRED_FAILED("Redis lock key를 얻는 데 실패했습니다."),;
+    REDIS_KEY_ACQUIRED_FAILED("Redis lock key를 얻는 데 실패했습니다."),
+    TOO_MANY_SESSIONS("접근하는 세션이 너무 많습니다");
+
 
     private final String message;
 

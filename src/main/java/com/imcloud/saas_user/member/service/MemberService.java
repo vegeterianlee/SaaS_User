@@ -2,10 +2,12 @@ package com.imcloud.saas_user.member.service;
 
 import com.imcloud.saas_user.common.dto.ErrorMessage;
 import com.imcloud.saas_user.common.entity.Member;
+import com.imcloud.saas_user.common.entity.UserSession;
 import com.imcloud.saas_user.common.entity.enums.Product;
 import com.imcloud.saas_user.common.entity.enums.UserRole;
 import com.imcloud.saas_user.common.jwt.JwtUtil;
 import com.imcloud.saas_user.common.repository.MemberRepository;
+import com.imcloud.saas_user.common.repository.UserSessionRepository;
 import com.imcloud.saas_user.common.security.UserDetailsImpl;
 import com.imcloud.saas_user.member.dto.LoginRequestDto;
 import com.imcloud.saas_user.member.dto.MemberResponseDto;
@@ -20,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityNotFoundException;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,7 +31,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import com.imcloud.saas_user.kafka.service.UserEventProducer;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 
@@ -42,6 +44,8 @@ public class MemberService {
     private final PasswordEncoder passwordEncoder;
     private final UserEventProducer userEventProducer;
     private final MemberRepository memberRepository;
+    private final UserSessionRepository userSessionRepository;
+
    /* private final WebClient.Builder webClientBuilder;
     private  WebClient paymentClient;
 
@@ -73,8 +77,8 @@ public class MemberService {
         return MemberResponseDto.of(newMember);
     }
 
-    @Transactional(readOnly = true)
-    public MemberResponseDto login(LoginRequestDto loginRequestDto, HttpServletResponse response) {
+    @Transactional
+    public MemberResponseDto login(LoginRequestDto loginRequestDto, HttpServletRequest request, HttpServletResponse response) {
 
         // 사용자 확인
         Member member = memberRepository.findByUserId(loginRequestDto.getUserId()).orElseThrow(
@@ -86,9 +90,48 @@ public class MemberService {
             throw new BadCredentialsException(ErrorMessage.WRONG_PASSWORD.getMessage());
         }
 
+        // 현재 사용자의 활성 세션 수 확인
+        int activeSessions = userSessionRepository.countActiveSessionsByMember(member.getUserId(),  LocalDateTime.now());
+        Product product = member.getProduct();
+
+        // 제한 확인
+        if (activeSessions > product.getNumOfAccounts()) {
+            throw new IllegalArgumentException(ErrorMessage.TOO_MANY_SESSIONS.getMessage());
+        }
+
+        // 세션 정보 저장
+        UserSession userSession = UserSession.builder()
+                .userId(member.getUserId())
+                .ipAddress(request.getRemoteAddr())
+                .browserInfo(request.getHeader("User-Agent"))
+                .loginTime(LocalDateTime.now())
+                .userStatus(true)
+                .expirationTime(LocalDateTime.now().plusHours(1)) // 1시간 후 만료
+                .build();
+        userSessionRepository.save(userSession);
+
         response.addHeader(JwtUtil.AUTHORIZATION_HEADER, jwtUtil.createToken(member.getUserId()));
         return MemberResponseDto.of(member);
     }
+
+    @Transactional
+    public void logout(UserDetailsImpl userDetails, HttpServletRequest request) {
+        // 사용자 확인
+        Member member = memberRepository.findByUserId(userDetails.getUser().getUserId()).orElseThrow(
+                () -> new EntityNotFoundException(ErrorMessage.MEMBER_NOT_FOUND.getMessage())
+        );
+
+
+        // 현재 사용자의 세션 찾기
+        UserSession userSession = userSessionRepository.findByUserIdAndIpAddressAndUserStatus(
+                        member.getUserId(), request.getRemoteAddr(), true)
+                .orElseThrow(() -> new EntityNotFoundException(ErrorMessage.SESSION_NOT_FOUND.getMessage()));
+
+        // 세션 상태 업데이트
+        userSession.setUserStatus(false);
+    }
+
+
 
 
     public Boolean checkUserId(String userId) {

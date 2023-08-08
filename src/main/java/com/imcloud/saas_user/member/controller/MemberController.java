@@ -16,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
@@ -40,9 +41,20 @@ public class MemberController {
     @Operation(summary = "로그인 (login)")
     public ApiResponse<MemberResponseDto> login(
             @RequestBody LoginRequestDto loginRequestDto,
-            @Parameter(hidden = true) HttpServletResponse response
+            @Parameter(hidden = true) HttpServletResponse response,
+            @Parameter(hidden = true) HttpServletRequest request
     ) {
-        return ApiResponse.successOf(HttpStatus.OK, memberService.login(loginRequestDto, response));
+        return ApiResponse.successOf(HttpStatus.OK, memberService.login(loginRequestDto, request, response));
+    }
+
+    @PostMapping("/logout")
+    @Operation(summary = "로그아웃 (logout)" , description = "Required because we need to limit the number of concurrent users by expiring the session. This is just a session expiration")
+    public ApiResponse<String> logout(
+            @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @Parameter(hidden = true) HttpServletRequest request
+    ) {
+        memberService.logout(userDetails, request);
+        return ApiResponse.successOf(HttpStatus.OK, "로그아웃 성공");
     }
 
     @PostMapping("/updateProfile")
