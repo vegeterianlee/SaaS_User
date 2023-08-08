@@ -95,7 +95,7 @@ public class MemberService {
         Product product = member.getProduct();
 
         // 제한 확인
-        if (activeSessions > product.getNumOfAccounts()) {
+        if (activeSessions >= product.getNumOfAccounts()) {
             throw new IllegalArgumentException(ErrorMessage.TOO_MANY_SESSIONS.getMessage());
         }
 
