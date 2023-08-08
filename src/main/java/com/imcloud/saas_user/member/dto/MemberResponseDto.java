@@ -34,6 +34,9 @@ public class MemberResponseDto {
     @Schema(example = "STANDARD", description = "구독 상품은 STANDARD, PREMIUM, ENTERPRISE 중 하나입니다.")
     private Product product;
 
+    @Schema(type = "integer", example = "854MB", description = "사용된 데이터 용량")
+    private Long dataUsage; // 추가된 필드
+
     private LocalDateTime createdAt;
     private LocalDateTime modifiedAt;
 
@@ -45,6 +48,7 @@ public class MemberResponseDto {
                 .email(member.getEmail())
                 .phone(member.getPhone())
                 .institution(member.getInstitution())
+                .dataUsage(member.getDataUsage())
                 .product(member.getProduct())
                 .createdAt(member.getCreatedAt())
                 .modifiedAt(member.getModifiedAt())

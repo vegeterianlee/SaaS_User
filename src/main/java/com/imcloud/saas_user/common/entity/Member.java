@@ -48,6 +48,9 @@ public class Member extends Timestamped {
     @Column(nullable = false)
     private Product product;
 
+    @Column(nullable = false, columnDefinition = "bigint default 0")
+    private Long dataUsage; // 추가된 필드
+
 
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "member", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private Set<Board> boardSet;
@@ -63,6 +66,7 @@ public class Member extends Timestamped {
                 .phone(signupRequestDto.getPhone())
                 .institution(signupRequestDto.getInstitution())
                 .role(UserRole.USER)
+                .dataUsage(0L)
                 .product(Product.ENTERPRISE)
                 .build();
     }
