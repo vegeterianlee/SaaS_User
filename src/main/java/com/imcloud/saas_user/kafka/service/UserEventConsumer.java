@@ -27,6 +27,7 @@ public class UserEventConsumer {
     private final UserEventProducer userEventProducer;
     private final String pay_to_user_topic = "pay_to_user_topic";
     private final String admin_to_user_topic = "admin_to_user_topic";
+    private final String admin_to_user_token = "admin_to_user_token";
 
     @KafkaListener(topics = pay_to_user_topic)
     public void handleDeleteMember(String userId) {
@@ -39,6 +40,25 @@ public class UserEventConsumer {
             // 회원 정보 삭제
             memberRepository.delete(member);
             System.out.println("Success in deleting user with userId: "+ userId);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Failed to process delete user message: " + e.getMessage());
+        }
+    }
+
+    @KafkaListener(topics = admin_to_user_token)
+    public void handleChangeUserToken(ConsumerRecord<String, String> record) {
+        try {
+            String userId = record.key();
+            String userToken = record.value();
+
+            // 사용자 확인
+            Member member = memberRepository.findByUserId(userId).orElseThrow(
+                    () -> new EntityNotFoundException(ErrorMessage.WRONG_USERID.getMessage())
+            );
+            member.setUserToken(Long.parseLong(userToken));
+            System.out.println("Success in changing userToken with userId: "+ userId);
 
         } catch (Exception e) {
             e.printStackTrace();
