@@ -38,6 +38,9 @@ public class BoardResponseDto {
     @Schema(example = "작성자 닉네임")
     private String username;
 
+    @Schema(example = "문의 사항 조회 수")
+    private Long viewCount;
+
     @Schema(example = "생성 날짜")
     private LocalDateTime createdAt;
 
@@ -64,6 +67,7 @@ public class BoardResponseDto {
                 .title(board.getTitle())
                 .username(board.getMember().getUsername())
                 .content(board.getContent())
+                .viewCount(board.getViewCount())
                 .createdAt(board.getCreatedAt())
                 .modifiedAt(board.getModifiedAt());
 //                .viewCount(board.getViewCount())

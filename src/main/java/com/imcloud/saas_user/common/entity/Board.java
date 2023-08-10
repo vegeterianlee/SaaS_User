@@ -26,20 +26,22 @@ public class Board extends Timestamped {
     @Column(nullable = false, columnDefinition = "text")
     private String content;
 
+    @Column(nullable = false, columnDefinition = "BIGINT DEFAULT 0")
+    private Long viewCount;
+
     @ManyToOne(fetch = FetchType.LAZY)
     private Member member;
 
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "board", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private Set<Comment> commentSet;
 
-    /*@Column(nullable = false, columnDefinition = "BIGINT DEFAULT 0")
-    private Long viewCount;*/
-
-
-
     public void update(BoardRequestDto dto) {
         this.title = dto.getTitle();
         this.content = dto.getContent();
+    }
+
+    public void increaseViewCount() {
+        this.viewCount += 1L;
     }
 
 //    public void updateViewCount(Long viewCountDifference) {
@@ -50,7 +52,7 @@ public class Board extends Timestamped {
         return Board.builder()
                 .title(dto.getTitle())
                 .content(dto.getContent())
-                //.viewCount(0L)
+                .viewCount(0L)
                 .member(member)
                 .build();
     }

@@ -54,6 +54,9 @@ public class BoardService {
         Board board = boardRepository.findById(boardId).orElseThrow(
                 () -> new EntityNotFoundException(ErrorMessage.BOARD_NOT_FOUND.getMessage())
         );
+
+        board.increaseViewCount();
+        board = boardRepository.save(board);
         return BoardResponseDto.of(board);
     }
 
