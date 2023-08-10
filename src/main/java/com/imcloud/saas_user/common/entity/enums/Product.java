@@ -6,15 +6,15 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 public enum Product {
-    STANDARD(17, 1, "1GB", 500000,"BASIC", false, false),
-    PREMIUM(18, 2, "10GB", 700000,"BASIC", true, false),
-    ENTERPRISE(18, 5, "10GB 이상", 1000000, "ADVANCED", true, true);
+    STANDARD(17, 1, 1024*1024L, 500000,"BASIC", false, false),
+    PREMIUM(18, 2, 10240*1024L, 700000,"BASIC", true, false),
+    ENTERPRISE(18, 5, 51200*1024L, 1000000, "ADVANCED", true, true);
 
     private final int numOfTechniques;
 
     private final int numOfAccounts;
 
-    private final String dataCapacity;
+    private final Long dataCapacity;
 
     private final int charge;
 
@@ -24,7 +24,7 @@ public enum Product {
 
     private final boolean isEncrypted;
 
-    Product(int numOfTechniques, int numOfAccounts, String dataCapacity, int charge,
+    Product(int numOfTechniques, int numOfAccounts, Long dataCapacity, int charge,
             String monitoringCapability, boolean isKeyProvided, boolean isEncrypted) {
         this.numOfTechniques = numOfTechniques;
         this.numOfAccounts = numOfAccounts;

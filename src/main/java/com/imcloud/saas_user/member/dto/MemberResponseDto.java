@@ -37,6 +37,9 @@ public class MemberResponseDto {
     @Schema(type = "integer", example = "854MB", description = "사용된 데이터 용량")
     private Long dataUsage; // 추가된 필드
 
+    @Schema(type = "integer", example = "854MB", description = "충전된 토큰수(KB)")
+    private Long userToken; // 추가된 필드
+
     private LocalDateTime createdAt;
     private LocalDateTime modifiedAt;
 
@@ -49,6 +52,7 @@ public class MemberResponseDto {
                 .phone(member.getPhone())
                 .institution(member.getInstitution())
                 .dataUsage(member.getDataUsage())
+                .userToken(member.getUserToken())
                 .product(member.getProduct())
                 .createdAt(member.getCreatedAt())
                 .modifiedAt(member.getModifiedAt())
