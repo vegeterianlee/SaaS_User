@@ -2,6 +2,7 @@ package com.imcloud.saas_user.member.dto;
 
 import com.imcloud.saas_user.common.entity.Member;
 import com.imcloud.saas_user.common.entity.enums.Product;
+import com.imcloud.saas_user.common.entity.enums.UserRole;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
@@ -31,6 +32,9 @@ public class MemberResponseDto {
     @Schema(example = "imcloud")
     private String institution;
 
+    @Schema(example = "USER")
+    private UserRole role;
+
     @Schema(example = "STANDARD", description = "구독 상품은 STANDARD, PREMIUM, ENTERPRISE 중 하나입니다.")
     private Product product;
 
@@ -51,6 +55,7 @@ public class MemberResponseDto {
                 .email(member.getEmail())
                 .phone(member.getPhone())
                 .institution(member.getInstitution())
+                .role(member.getRole())
                 .dataUsage(member.getDataUsage())
                 .userToken(member.getUserToken())
                 .product(member.getProduct())
