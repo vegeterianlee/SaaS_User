@@ -10,6 +10,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ActivityLogRepository extends JpaRepository<ActivityLog, Long> {
-    @Query("select a from ActivityLog a where a.userId = :userId")
+    @Query("select a from ActivityLog a where a.userId = :userId ORDER BY a.id DESC")
     Page<ActivityLog> findActivityLogsByUserId(String userId, Pageable pageable);
 }

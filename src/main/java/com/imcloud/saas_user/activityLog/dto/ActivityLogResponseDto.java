@@ -34,6 +34,9 @@ public class ActivityLogResponseDto {
     @Schema(type = "string", example = "2023-08-14T12:00:00", description = "Created At")
     private LocalDateTime createdAt;
 
+    @Schema(type = "integer", example = "5", description = "Number of Columns in log details")
+    private Integer numberOfColumns;
+
     @Schema(description = "List of log details")
     private List<LogDetailDto> logDetails;
 
@@ -65,6 +68,7 @@ public class ActivityLogResponseDto {
                 .fileName(activityLog.getFileName())
                 .processingTime(activityLog.getProcessingTime())
                 .createdAt(activityLog.getCreatedAt())
+                .numberOfColumns(activityLog.getLogDetailSet().size())
                 .logDetails(activityLog.getLogDetailSet().stream()
                         .map(detail -> LogDetailDto.builder()
                                 .dataMethod(detail.getDataMethod())
