@@ -30,10 +30,14 @@ public class ActivityLogService {
         );
 
         Pageable pageable = PageRequest.of(page-1, size);
-        return activityLogRepository.findActivityLogsByUserId(member.getUserId(), pageable).map(this::toDto);
+        Page<ActivityLog> logs = activityLogRepository.findActivityLogsByUserId(member.getUserId(), pageable);
+
+        // LogDetail 엔터티 로드
+        logs.getContent().forEach(log -> log.getLogDetailSet().size());
+        return logs.map(this::toDto);
     }
 
-    // 추가된 private 메소드
+    // 추가된 private 메소드, of 정적 메서드로 호출해도 상관없음
     private ActivityLogResponseDto toDto(ActivityLog activityLog) {
         return ActivityLogResponseDto.of(activityLog);
     }

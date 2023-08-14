@@ -11,8 +11,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ActivityLogRepository extends JpaRepository<ActivityLog, Long> {
     @Query("select a from ActivityLog a where a.userId = :userId")
-    @EntityGraph(attributePaths = {
-            "logDetailSet"
-    })
     Page<ActivityLog> findActivityLogsByUserId(String userId, Pageable pageable);
 }
