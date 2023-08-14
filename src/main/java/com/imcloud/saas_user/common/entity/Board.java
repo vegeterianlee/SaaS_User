@@ -29,10 +29,10 @@ public class Board extends Timestamped {
     @Column(nullable = false, columnDefinition = "BIGINT DEFAULT 0")
     private Long viewCount;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     private Member member;
 
-    @OneToMany(fetch = FetchType.EAGER, mappedBy = "board", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToMany(mappedBy = "board", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private Set<Comment> commentSet;
 
     public void update(BoardRequestDto dto) {

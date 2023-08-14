@@ -21,10 +21,10 @@ public class Comment extends Timestamped {
     @Column(nullable = false, columnDefinition = "text")
     private String content;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     private Member member;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     private Board board;
 
     public void update(CommentRequestDto dto) {
