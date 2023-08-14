@@ -30,7 +30,7 @@ public class ActivityLogService {
         );
 
         Pageable pageable = PageRequest.of(page-1, size);
-        Page<ActivityLog> logs = activityLogRepository.findActivityLogsByUserId(member.getUserId(), pageable);
+        Page<ActivityLog> logs = activityLogRepository.findActivityLogsByUserIdWithDetails(member.getUserId(), pageable);
 
         return logs.map(this::toDto);
     }
