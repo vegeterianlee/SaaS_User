@@ -4,6 +4,7 @@ import com.imcloud.saas_user.common.entity.ActivityLog;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
@@ -37,6 +38,8 @@ public class ActivityLogResponseDto {
     private List<LogDetailDto> logDetails;
 
     @Builder
+    @Getter
+    @Setter
     public static class LogDetailDto {
         @Schema(type = "string", example = "Categorization", description = "Data Method")
         private String dataMethod;

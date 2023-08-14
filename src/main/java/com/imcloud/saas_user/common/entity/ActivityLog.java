@@ -34,7 +34,7 @@ public class ActivityLog extends Timestamped {
     @Column(nullable = false, columnDefinition = "varchar(50) default 'Processing'")
     private String status;
 
-    @OneToMany( mappedBy = "activityLog", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToMany(mappedBy = "activityLog", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private Set<LogDetail> logDetailSet;
 
 }
