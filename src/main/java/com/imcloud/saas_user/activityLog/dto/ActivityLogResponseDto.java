@@ -40,11 +40,13 @@ public class ActivityLogResponseDto {
     @Schema(type = "Long", example = "1024KB", description = "Data Size in KB")
     private Long dataSize;
 
+    @Schema(type = "string", example = "excel", description = "Data Type")
+    private String dataType;
+
     @Schema(description = "List of log details")
     private List<LogDetailDto> logDetails;
 
-    @Schema(type = "string", example = "excel", description = "Data Type")
-    private String dataType;
+
 
     @Builder
     @Getter
