@@ -114,6 +114,16 @@ public class MemberService {
         return MemberResponseDto.of(member);
     }
 
+    @Scheduled(fixedRate = 60000)  // 60,000 milliseconds = 1 minute
+    public void invalidateExpiredSessions() {
+        LocalDateTime now = LocalDateTime.now();
+        List<UserSession> expiredSessions = userSessionRepository.findByExpirationTimeBeforeAndUserStatus(now, true);
+        for (UserSession session : expiredSessions) {
+            session.setUserStatus(false);
+        }
+        userSessionRepository.saveAll(expiredSessions);
+    }
+
     @Transactional
     public void logout(UserDetailsImpl userDetails, HttpServletRequest request) {
         // 사용자 확인
@@ -220,29 +230,5 @@ public class MemberService {
         // promote to admin
         member.setRole(UserRole.ADMIN);
     }
-
-    /*@Transactional
-    @Scheduled(cron = "0 0/10 * * * *") // Every 10 minutes
-    public void checkAndAssignSubscription() {
-        // 3일 전 날짜 계산
-        LocalDateTime threeDaysAgo = LocalDateTime.now().minusDays(3);
-
-        // 3일 전에 생성된 멤버 찾기
-        List<Member> members = memberRepository.findAllByCreatedAtBefore(threeDaysAgo);
-
-        Flux.fromIterable(members)
-                .flatMap(member -> paymentClient.get()
-                        .uri("/" + member.getId())
-                        .retrieve()
-                        .bodyToMono(Boolean.class)
-                        .map(isActive -> {
-                            if (isActive != null && !isActive) {
-                                member.setProduct(Product.STANDARD);
-                            }
-                            return member;
-                        }))
-                .doOnNext(memberRepository::save)
-                .subscribe();
-    }*/
 
 }

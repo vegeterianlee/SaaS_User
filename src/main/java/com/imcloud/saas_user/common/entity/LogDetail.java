@@ -31,7 +31,7 @@ public class LogDetail extends Timestamped {
     private String description;
 
     @Column(name = "data_size", nullable = false)
-    private int dataSize;
+    private Long dataSize;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="activity_id")
