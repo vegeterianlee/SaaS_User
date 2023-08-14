@@ -34,11 +34,7 @@ public class ActivityLog extends Timestamped {
     @Column(nullable = false, columnDefinition = "varchar(50) default 'Processing'")
     private String status;
 
-    @Column(nullable = false, columnDefinition = "int default 0")
-    private Integer numCalledApis;
-
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "activityLog", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private Set<LogDetail> logDetailSet;
-
 
 }
