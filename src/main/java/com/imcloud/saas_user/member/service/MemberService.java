@@ -123,12 +123,16 @@ public class MemberService {
 
 
         // 현재 사용자의 세션 찾기
-        UserSession userSession = userSessionRepository.findByUserIdAndIpAddressAndUserStatus(
-                        member.getUserId(), request.getRemoteAddr(), true)
-                .orElseThrow(() -> new EntityNotFoundException(ErrorMessage.SESSION_NOT_FOUND.getMessage()));
+        List<UserSession> userSessions = userSessionRepository.findByUserIdAndIpAddressAndUserStatus(
+                member.getUserId(), request.getRemoteAddr(), true);
 
-        // 세션 상태 업데이트
-        userSession.setUserStatus(false);
+        if (userSessions.isEmpty()) {
+            throw new EntityNotFoundException(ErrorMessage.SESSION_NOT_FOUND.getMessage());
+        }
+        // 모든 매칭되는 세션 상태 업데이트
+        for (UserSession userSession : userSessions) {
+            userSession.setUserStatus(false);
+        }
     }
 
 

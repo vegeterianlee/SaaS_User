@@ -33,7 +33,7 @@ public class DataUsageService {
 
         Map<String, Long> monthlyDataUsage = new LinkedHashMap<>(); // To maintain order
 
-        for (int i = 3; i >= 1; i--) {
+        for (int i = 2; i >= 0; i--) {
             LocalDateTime startOfMonth = LocalDateTime.now().minusMonths(i).withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
             LocalDateTime endOfMonth = startOfMonth.plusMonths(1).minusSeconds(1);
 
