@@ -9,6 +9,8 @@ import com.imcloud.saas_user.common.security.UserDetailsImpl;
 import com.imcloud.saas_user.dataUsage.dto.DataUsageResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import javax.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
@@ -22,6 +24,7 @@ public class DataUsageService {
     private final DataUsageLogRepository dataUsageLogRepository;
     private final MemberRepository memberRepository;
 
+    @Transactional(readOnly = true)
     public Map<String, Long> getDataUsageForLastThreeMonths(UserDetailsImpl userDetails) {
         // 사용자 확인
         Member member = memberRepository.findByUserId(userDetails.getUser().getUserId()).orElseThrow(
@@ -43,6 +46,7 @@ public class DataUsageService {
         return monthlyDataUsage;
     }
 
+    @Transactional(readOnly = true)
     public Long getDataUsageLastThreeMonths(UserDetailsImpl userDetails) {
         // 사용자 확인
         Member member = memberRepository.findByUserId(userDetails.getUser().getUserId()).orElseThrow(
@@ -55,6 +59,7 @@ public class DataUsageService {
         return logs.stream().mapToLong(DataUsageLog::getDataSize).sum();
     }
 
+    @Transactional(readOnly = true)
     public DataUsageResponseDto getMonthlyDataComparison(UserDetailsImpl userDetails) {
         // 사용자 확인
         Member member = memberRepository.findByUserId(userDetails.getUser().getUserId()).orElseThrow(
@@ -77,8 +82,18 @@ public class DataUsageService {
         List<DataUsageLog> logsOfCurrentMonth = dataUsageLogRepository.findByUserIdAndUsedAtBetween(member.getUserId(), startOfCurrentMonth, endOfCurrentMonth);
         Long currentMonthUsage = logsOfCurrentMonth.stream().mapToLong(DataUsageLog::getDataSize).sum();
 
+        // 저번 달 대비 현재 달의 사용량 퍼센트 계산
+        Double usagePercentageIncrease;
+        if (lastMonthUsage == 0) {
+            // 지난달 사용량이 0인 경우 100%로 설정
+            usagePercentageIncrease = 100.0;
+        } else {
+            // 저번 달 대비 현재 달의 사용량 퍼센트 계산
+            usagePercentageIncrease = (double) (currentMonthUsage - lastMonthUsage) / lastMonthUsage * 100;
+        }
+
         // DTO에 값을 할당하고 반환
-        return DataUsageResponseDto.of(currentMonthUsage, lastMonthUsage);
+        return DataUsageResponseDto.of(currentMonthUsage, lastMonthUsage, usagePercentageIncrease);
     }
 
 }
