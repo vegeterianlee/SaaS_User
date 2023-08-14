@@ -32,8 +32,6 @@ public class ActivityLogService {
         Pageable pageable = PageRequest.of(page-1, size);
         Page<ActivityLog> logs = activityLogRepository.findActivityLogsByUserId(member.getUserId(), pageable);
 
-        // LogDetail 엔터티 로드
-        logs.getContent().forEach(log -> log.getLogDetailSet().size());
         return logs.map(this::toDto);
     }
 

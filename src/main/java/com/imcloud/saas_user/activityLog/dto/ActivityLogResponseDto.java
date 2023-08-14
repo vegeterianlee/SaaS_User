@@ -37,8 +37,14 @@ public class ActivityLogResponseDto {
     @Schema(type = "integer", example = "5", description = "Number of Columns in log details")
     private Integer numberOfColumns;
 
+    @Schema(type = "Long", example = "1024KB", description = "Data Size in KB")
+    private Long dataSize;
+
     @Schema(description = "List of log details")
     private List<LogDetailDto> logDetails;
+
+    @Schema(type = "string", example = "excel", description = "Data Type")
+    private String dataType;
 
     @Builder
     @Getter
@@ -50,14 +56,9 @@ public class ActivityLogResponseDto {
         @Schema(type = "string", example = "CV_POSITION", description = "Column Name")
         private String columnName;
 
-        @Schema(type = "string", example = "excel", description = "Data Type")
-        private String dataType;
-
         @Schema(type = "string", example = "CV_POSITION categorizaed, data size: 1024 KB", description = "Description")
         private String description;
 
-        @Schema(type = "Long", example = "1024KB", description = "Data Size in KB")
-        private Long dataSize;
     }
 
     public static ActivityLogResponseDto of(ActivityLog activityLog) {
@@ -69,13 +70,13 @@ public class ActivityLogResponseDto {
                 .processingTime(activityLog.getProcessingTime())
                 .createdAt(activityLog.getCreatedAt())
                 .numberOfColumns(activityLog.getLogDetailSet().size())
+                .dataSize(activityLog.getLogDetailSet().iterator().next().getDataSize())
+                .dataType(activityLog.getLogDetailSet().iterator().next().getDataType())
                 .logDetails(activityLog.getLogDetailSet().stream()
                         .map(detail -> LogDetailDto.builder()
                                 .dataMethod(detail.getDataMethod())
                                 .columnName(detail.getColumnName())
-                                .dataType(detail.getDataType())
                                 .description(detail.getDescription())
-                                .dataSize(detail.getDataSize())
                                 .build())
                         .collect(Collectors.toList()));
 
