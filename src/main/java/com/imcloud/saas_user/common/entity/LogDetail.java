@@ -33,7 +33,7 @@ public class LogDetail extends Timestamped {
     @Column(name = "data_size", nullable = false)
     private Long dataSize;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name="activity_id")
     private ActivityLog activityLog;
 }
