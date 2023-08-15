@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -71,18 +72,24 @@ public class ActivityLogResponseDto {
                 .fileName(activityLog.getFileName())
                 .processingTime(activityLog.getProcessingTime())
                 .createdAt(activityLog.getCreatedAt())
-                .numberOfColumns(activityLog.getLogDetailSet().size())
-                .dataSize(activityLog.getLogDetailSet().iterator().next().getDataSize())
-                .dataType(activityLog.getLogDetailSet().iterator().next().getDataType())
-                .logDetails(activityLog.getLogDetailSet().stream()
-                        .map(detail -> LogDetailDto.builder()
-                                .dataMethod(detail.getDataMethod())
-                                .columnName(detail.getColumnName())
-                                .description(detail.getDescription())
-                                .build())
-                        .collect(Collectors.toList()));
+                .numberOfColumns(activityLog.getLogDetailSet() != null ? activityLog.getLogDetailSet().size() : 0);
+
+        if (activityLog.getLogDetailSet() != null && !activityLog.getLogDetailSet().isEmpty()) {
+            builder.dataSize(activityLog.getLogDetailSet().iterator().next().getDataSize())
+                    .dataType(activityLog.getLogDetailSet().iterator().next().getDataType())
+                    .logDetails(activityLog.getLogDetailSet().stream()
+                            .map(detail -> LogDetailDto.builder()
+                                    .dataMethod(detail.getDataMethod())
+                                    .columnName(detail.getColumnName())
+                                    .description(detail.getDescription())
+                                    .build())
+                            .collect(Collectors.toList()));
+        } else {
+            builder.logDetails(Collections.emptyList());
+        }
 
         return builder.build();
     }
+
 
 }
