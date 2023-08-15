@@ -18,19 +18,19 @@ public class LogDetail extends Timestamped {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "data_method", nullable = false, length = 200)
+    @Column(name = "data_method", nullable = true, length = 200)
     private String dataMethod;
 
-    @Column(name = "column_name", nullable = false, length = 200)
+    @Column(name = "column_name", nullable = true, length = 200)
     private String columnName;
 
-    @Column(name = "data_type", nullable = false, length = 200)
+    @Column(name = "data_type", nullable = true, length = 200)
     private String dataType;
 
-    @Column(name = "description", nullable = false, length = 200)
+    @Column(name = "description", nullable = true, length = 200)
     private String description;
 
-    @Column(name = "data_size", nullable = false)
+    @Column(name = "data_size", nullable = true)
     private Long dataSize;
 
     @ManyToOne
