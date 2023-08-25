@@ -23,7 +23,7 @@ import javax.validation.Valid;
 @Tag(name = "member")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/api/members")
+@RequestMapping("/api/members")
 public class MemberController {
     private final MemberService memberService;
 
