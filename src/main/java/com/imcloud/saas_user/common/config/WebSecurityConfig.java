@@ -60,11 +60,9 @@ public class WebSecurityConfig implements WebMvcConfigurer {
         http.authorizeRequests()
                 .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
                 .antMatchers(HttpMethod.GET, "/api/health-check").permitAll()
-                .antMatchers("/api/members/signup").permitAll()
-                .antMatchers("/api/members/login").permitAll()
+                .antMatchers("/api/api/members/signup").permitAll()
+                .antMatchers("/api/api/members/login").permitAll()
                 .antMatchers("/api/members/userId/duplicate").permitAll()
-                .antMatchers("/api/members").permitAll()
-                .antMatchers("/api/boards/allsearch").permitAll()
 
 
                 .anyRequest().authenticated()
