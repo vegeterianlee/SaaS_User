@@ -1,5 +1,6 @@
 package com.imcloud.saas_user.member.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.imcloud.saas_user.common.entity.Member;
 import com.imcloud.saas_user.common.entity.enums.Product;
 import com.imcloud.saas_user.common.entity.enums.UserRole;
@@ -47,6 +48,11 @@ public class MemberResponseDto {
     private LocalDateTime createdAt;
     private LocalDateTime modifiedAt;
 
+    @Schema(example = "sample.jwt.token.here")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private String jwttoken;
+
+
     public static MemberResponseDto of(Member member) {
         return MemberResponseDto.builder()
                 .id(member.getId())
@@ -61,6 +67,24 @@ public class MemberResponseDto {
                 .product(member.getProduct())
                 .createdAt(member.getCreatedAt())
                 .modifiedAt(member.getModifiedAt())
+                .build();
+    }
+
+    public static MemberResponseDto of(Member member, String token) {
+        return MemberResponseDto.builder()
+                .id(member.getId())
+                .username(member.getUsername())
+                .userId(member.getUserId())
+                .email(member.getEmail())
+                .phone(member.getPhone())
+                .institution(member.getInstitution())
+                .role(member.getRole())
+                .dataUsage(member.getDataUsage())
+                .userToken(member.getUserToken())
+                .product(member.getProduct())
+                .createdAt(member.getCreatedAt())
+                .modifiedAt(member.getModifiedAt())
+                .jwttoken(token) // 토큰 설정
                 .build();
     }
 

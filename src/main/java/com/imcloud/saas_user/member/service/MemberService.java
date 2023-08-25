@@ -110,8 +110,8 @@ public class MemberService {
                 .build();
         userSessionRepository.save(userSession);
 
-        response.addHeader(JwtUtil.AUTHORIZATION_HEADER, jwtUtil.createToken(member.getUserId()));
-        return MemberResponseDto.of(member);
+        String jwtToken = jwtUtil.createToken(member.getUserId());
+        return MemberResponseDto.of(member, jwtToken);
     }
 
     @Scheduled(fixedRate = 60000)  // 60,000 milliseconds = 1 minute
