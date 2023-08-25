@@ -89,6 +89,7 @@ public class WebSecurityConfig implements WebMvcConfigurer {
         }
         allowedOriginList.add("https://open-velog.vercel.app");
         allowedOriginList.add("https://search-open-velog-elastic-bvtge6dkgdmsr2i3f3kzwo6m2u.ap-northeast-2.es.amazonaws.com");
+        allowedOriginList.add("http://43.131.252.119:8099/");
 
         registry
                 .addMapping("/**") // 프로그램에서 제공하는 URL
