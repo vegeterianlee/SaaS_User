@@ -15,7 +15,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class SignupRequestDto {
     @Pattern(regexp = "^(?=.*?[0-9])(?=.*?[a-z]).{6,16}$", message = "잘못된 양식의 아이디를 입력했거나 중복 허용되지 않습니다. .")
-    @Schema(example = "userId", description = "/^(?=.*?[0-9])(?=.*?[a-z]).{6,16}$/")
+    @Schema(example = "userId1", description = "/^(?=.*?[0-9])(?=.*?[a-z]).{6,16}$/")
     private String userId;
 
     @Pattern(regexp = "^[a-zA-Z가-힣ㄱ-ㅎㅏ-ㅣ0-9]{2,8}$", message = "잘못된 양식의 닉네임을 입력하셨거나 중복 허용되지 않습니다.")
@@ -23,7 +23,7 @@ public class SignupRequestDto {
     private String username;
 
     @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d$@$!%*#?&]{8,}$", message = "잘못된 양식의 비밀번호를 입력하셨습니다.")
-    @Schema(example = "password", description = "/^(?=.*[A-Za-z])(?=.*\\d)(?=.*[$@$!%*#?&])[A-Za-z\\d$@$!%*#?&]{8,}$/")
+    @Schema(example = "Password1", description = "/^(?=.*[A-Za-z])(?=.*\\d)(?=.*[$@$!%*#?&])[A-Za-z\\d$@$!%*#?&]{8,}$/")
     private String password;
 
     //@Email

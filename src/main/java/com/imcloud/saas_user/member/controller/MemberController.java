@@ -29,12 +29,14 @@ public class MemberController {
 
     @PostMapping("/signup")
     @SecurityRequirements()
-    @Operation(summary = "회원 가입 (create membership) ", description = "userId is an English numeric combination of 4 or more characters and 10 or less characters\n" +
-            "Password is an English number combination of 8 or more characters and 15 or less characters\n" +
-            "username is not less than 2 characters and not more than 8 characters")
+    @Operation(summary = "회원 가입 (create membership)",
+            description = "userId must be 6-16 characters long and contain at least one number and one lowercase letter.\n" +
+                    "Password must be 8 characters or longer, contain at least one number, and one uppercase or lowercase letter. It may also contain special characters like $@$!%*#?&.\n" +
+                    "username must be 2-8 characters long and can include alphabets, numbers, and Korean characters.")
     public ApiResponse<MemberResponseDto> signup(@RequestBody @Valid SignupRequestDto signupRequestDto) {
         return ApiResponse.successOf(HttpStatus.CREATED, memberService.signup(signupRequestDto));
     }
+
 
     @PostMapping("/login")
     @SecurityRequirements()
