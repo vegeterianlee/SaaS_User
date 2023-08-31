@@ -33,7 +33,7 @@ public class BoardController {
         return ApiResponse.successOf(HttpStatus.CREATED, boardService.createBoard(dto, userDetails));
     }
 
-    @GetMapping("/specific")
+    @GetMapping("/specificBoard")
     @Operation(summary = "게시글 조회 (get a board by boardId) ", description ="특정 boardId를 갖는 단일 게시글 조회")
     public ApiResponse<BoardResponseDto> getSpecificBoard(
             @RequestParam Long boardId,
@@ -41,7 +41,17 @@ public class BoardController {
         return ApiResponse.successOf(HttpStatus.OK, boardService.getSpecificBoard(boardId, userDetails));
     }
 
-    @GetMapping("/search")
+    @GetMapping("/adminBoards")
+    @Operation(summary = "ADMIN 권한을 가진 사용자의 게시글 조회", description = "Page starts with 1, sort in descending order")
+    public ApiResponse<Page<BoardResponseDto>> getAdminBoards(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails
+    ) {
+        return ApiResponse.successOf(HttpStatus.OK, boardService.getAdminBoards(page, size, userDetails));
+    }
+
+    @GetMapping("/userBoards")
     @Operation(summary = "유저의 게시글 조회 (get all user's boards)", description = "Page starts with 1, sort in descending order")
     public ApiResponse<Page<BoardResponseDto>> searchBoards(
             @RequestParam(defaultValue = "1") Integer page,
@@ -50,7 +60,7 @@ public class BoardController {
         return ApiResponse.successOf(HttpStatus.OK, boardService.getBoard(page, size, userDetails));
     }
 
-    @GetMapping("/allsearch")
+    @GetMapping("/allusersBoards")
     @Operation(summary = "모든 게시글 조회 (get all boards)", description = "Page starts with 1, sort in descending order")
     public ApiResponse<Page<BoardResponseDto>> getBoard(
             @RequestParam(defaultValue = "1") Integer page,

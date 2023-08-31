@@ -33,4 +33,10 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
     })
     Page<Board> findAll(Pageable pageable);
 
+    @Query("select b from boards b where b.member.role = 'ADMIN' ORDER BY b.id DESC")
+    @EntityGraph(attributePaths = {
+            "member"
+    })
+    Page<Board> findBoardsByAdminRole(Pageable pageable);
+
 }

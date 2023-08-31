@@ -81,6 +81,18 @@ public class BoardService {
         return boardRepository.findAll(pageable).map(BoardResponseDto::of);
     }
 
+    @Transactional(readOnly = true)
+    public Page<BoardResponseDto> getAdminBoards(Integer page, Integer size, UserDetailsImpl userDetails) {
+        // 사용자 확인 (선택적: 필요에 따라)
+        Member member = memberRepository.findByUserId(userDetails.getUser().getUserId()).orElseThrow(
+                () -> new EntityNotFoundException(ErrorMessage.WRONG_USERID.getMessage())
+        );
+
+        Pageable pageable = PageRequest.of(page-1, size);
+        return boardRepository.findBoardsByAdminRole(pageable).map(BoardResponseDto::of);
+    }
+
+
     @Transactional
     public BoardResponseDto updateBoard(
             Long boardId,
