@@ -23,6 +23,9 @@ public interface ActivityLogRepository extends JpaRepository<ActivityLog, Long> 
     @Query("select a from ActivityLog a join fetch a.logDetailSet where a.id in :ids")
     List<ActivityLog> findAllWithDetailsByIds(List<Long> ids);
 
+    @Query("select count(a) from ActivityLog a where a.userId = :userId and FUNCTION('MONTH', a.createdAt) = :month")
+    Long countActivityLogsByUserIdAndMonth(String userId, int month);
 
-
+    @Query("select count(a) from ActivityLog a where a.userId = :userId")
+    Long countAllActivityLogsByUserId(String userId);
 }

@@ -16,6 +16,9 @@ import org.springframework.stereotype.Service;
 import javax.persistence.EntityNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Service
 @RequiredArgsConstructor
 public class ActivityLogService {
@@ -40,4 +43,27 @@ public class ActivityLogService {
         return ActivityLogResponseDto.of(activityLog);
     }
 
+    @Transactional(readOnly = true)
+    public Map<Integer, Long> getActivityLogsCountByMonth(UserDetailsImpl userDetails) {
+        // 사용자 확인
+        Member member = memberRepository.findByUserId(userDetails.getUser().getUserId())
+                .orElseThrow(() -> new EntityNotFoundException(ErrorMessage.WRONG_USERID.getMessage()));
+
+        Map<Integer, Long> monthlyLogsCount = new HashMap<>();
+        for (int month = 1; month <= 12; month++) {
+            Long count = activityLogRepository.countActivityLogsByUserIdAndMonth(member.getUserId(), month);
+            monthlyLogsCount.put(month, count);
+        }
+
+        return monthlyLogsCount;
+    }
+
+    @Transactional(readOnly = true)
+    public Long getAllActivityLogsCount(UserDetailsImpl userDetails) {
+        // 사용자 확인
+        Member member = memberRepository.findByUserId(userDetails.getUser().getUserId())
+                .orElseThrow(() -> new EntityNotFoundException(ErrorMessage.WRONG_USERID.getMessage()));
+
+        return activityLogRepository.countAllActivityLogsByUserId(member.getUserId());
+    }
 }

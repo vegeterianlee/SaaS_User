@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Map;
+
 @Tag(name = "Processing History")
 @RestController
 @RequestMapping("/api/activitylogs")
@@ -31,5 +33,17 @@ public class ActivityLogController {
             @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails) {
         return ApiResponse.successOf(HttpStatus.OK, activityLogService.getActivityLogs(page, size, userDetails));
     }
+    @GetMapping("/monthly")
+    @Operation(summary = "사용자의 월별 비식별 처리 히스토리 수 조회 (get user's monthly Processing history counts)")
+    public ApiResponse<Map<Integer, Long>> getMonthlyActivityLogs(
+            @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        return ApiResponse.successOf(HttpStatus.OK, activityLogService.getActivityLogsCountByMonth(userDetails));
+    }
 
+    @GetMapping("/totalCount")
+    @Operation(summary = "사용자의 전체 비식별 처리 히스토리 수 조회 (get user's total Processing history counts)")
+    public ApiResponse<Long> getTotalActivityLogs(
+            @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        return ApiResponse.successOf(HttpStatus.OK, activityLogService.getAllActivityLogsCount(userDetails));
+    }
 }
