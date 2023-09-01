@@ -1,6 +1,7 @@
 package com.imcloud.saas_user.member.controller;
 
 import com.imcloud.saas_user.common.dto.ApiResponse;
+import com.imcloud.saas_user.common.entity.UserSession;
 import com.imcloud.saas_user.common.security.UserDetailsImpl;
 import com.imcloud.saas_user.member.dto.LoginRequestDto;
 import com.imcloud.saas_user.member.dto.MemberResponseDto;
@@ -37,6 +38,12 @@ public class MemberController {
         return ApiResponse.successOf(HttpStatus.CREATED, memberService.signup(signupRequestDto));
     }
 
+    @GetMapping("/last-session")
+    @Operation(summary = "사용자의 마지막 세션 정보 조회 (get user's last session info)")
+    public ApiResponse<UserSession> getLastSessionInfo(
+            @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        return ApiResponse.successOf(HttpStatus.OK, memberService.getLastSessionInfo(userDetails));
+    }
 
     @PostMapping("/login")
     @SecurityRequirements()

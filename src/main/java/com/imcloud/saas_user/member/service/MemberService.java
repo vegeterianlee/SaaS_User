@@ -33,6 +33,10 @@ import java.util.Optional;
 import com.imcloud.saas_user.kafka.service.UserEventProducer;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+
 
 @Service
 @RequiredArgsConstructor
@@ -145,7 +149,22 @@ public class MemberService {
         }
     }
 
+    @Transactional(readOnly = true)
+    public UserSession getLastSessionInfo(UserDetailsImpl userDetails) {
+        // 사용자 확인
+        Member member = memberRepository.findByUserId(userDetails.getUser().getUserId())
+                .orElseThrow(() -> new EntityNotFoundException(ErrorMessage.WRONG_USERID.getMessage()));
 
+        // 가장 최근의 세션을 가져옴
+        Pageable topByOrderByLoginTimeDesc = PageRequest.of(0, 1, Sort.by(Sort.Direction.DESC, "loginTime"));
+        List<UserSession> sessions = memberRepository.findLatestSessionsByUserId(member.getUserId(), topByOrderByLoginTimeDesc);
+
+        if (sessions.isEmpty()) {
+            throw new EntityNotFoundException("No session information found");
+        }
+
+        return sessions.get(0);
+    }
 
 
     public Boolean checkUserId(String userId) {
