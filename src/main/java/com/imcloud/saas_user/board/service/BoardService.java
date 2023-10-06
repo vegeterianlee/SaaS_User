@@ -93,7 +93,6 @@ public class BoardService {
     }
 
 
-
     @Transactional(readOnly = true)
     public Page<BoardResponseDto> getAdminBoards(Integer page, Integer size, UserDetailsImpl userDetails) {
         // 사용자 확인
@@ -103,6 +102,17 @@ public class BoardService {
 
         Pageable pageable = PageRequest.of(page-1, size);
         return boardRepository.findBoardsByAdminRole(pageable).map(BoardResponseDto::of);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<BoardResponseDto> searchBoards(Integer page, Integer size, UserDetailsImpl userDetails, String searchType, String keyword) {
+        // 사용자 확인
+        Member member = memberRepository.findByUserId(userDetails.getUser().getUserId()).orElseThrow(
+                () -> new EntityNotFoundException(ErrorMessage.WRONG_USERID.getMessage())
+        );
+
+        Pageable pageable = PageRequest.of(page-1, size);
+        return boardRepository.searchBoards(searchType, keyword, pageable).map(BoardResponseDto::of);
     }
 
 

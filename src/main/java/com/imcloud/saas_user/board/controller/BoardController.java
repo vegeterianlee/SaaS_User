@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.util.concurrent.CompletableFuture;
 
-@Tag(name = "Board")
+@Tag(name = "QNA Board in User")
 @RestController
 @RequestMapping("/api/boards")
 @RequiredArgsConstructor
@@ -100,5 +100,15 @@ public class BoardController {
         return ApiResponse.successOf(HttpStatus.NO_CONTENT, "게시글 삭제 완료");
     }
 
+    @GetMapping("/searchBoards")
+    @Operation(summary = "게시글 검색 (Search boards by searchType and keyword)", description = "searchType과 keyword를 이용해 게시글 검색")
+    public ApiResponse<Page<BoardResponseDto>> search(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam String searchType,
+            @RequestParam String keyword,
+            @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        return ApiResponse.successOf(HttpStatus.OK, boardService.searchBoards(page, size, userDetails, searchType, keyword));
+    }
 
 }

@@ -107,7 +107,7 @@ public class MemberController {
         return ApiResponse.successOf(HttpStatus.OK, "회원 탈퇴 완료");
     }
 
-    @GetMapping("/admin")
+    @PostMapping("/admin")
     @Operation(summary = "Role change Admin", description = "Change to Administrator Completed")
     public ApiResponse<String> changeRole(
             @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails,

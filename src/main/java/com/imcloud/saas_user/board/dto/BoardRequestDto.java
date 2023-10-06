@@ -13,7 +13,7 @@ import javax.validation.constraints.Size;
 public class BoardRequestDto {
 
     @NotBlank
-    @Size(min = 3, max = 30, message = "제목은 3자 이상 30자 이하이여야합니다.")
+    @Size(min = 2, max = 30, message = "제목은 3자 이상 30자 이하이여야합니다.")
     private String title;
     @NotBlank
     private String content;

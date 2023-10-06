@@ -45,4 +45,14 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
     })
     Page<Board> findBoardsByUserRole(Pageable pageable);
 
+    @EntityGraph(attributePaths = {
+            "member"
+    })
+    @Query("SELECT b FROM boards b WHERE " +
+            "(:searchType = 'userId' AND b.member.userId LIKE %:keyword%) OR " +
+            "(:searchType = 'hasAdminComment' AND b.hasAdminComment = CASE WHEN :keyword = 'true' THEN true ELSE false END) OR " +
+            "(:searchType = 'title' AND b.title LIKE %:keyword%) OR " +
+            "(:searchType = 'content' AND b.content LIKE %:keyword%)")
+    Page<Board> searchBoards(String searchType, String keyword, Pageable pageable);
+
 }

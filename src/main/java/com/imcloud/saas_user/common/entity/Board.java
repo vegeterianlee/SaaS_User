@@ -29,6 +29,9 @@ public class Board extends Timestamped {
     @Column(nullable = false, columnDefinition = "BIGINT DEFAULT 0")
     private Long viewCount;
 
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean hasAdminComment;
+
     @ManyToOne
     private Member member;
 
