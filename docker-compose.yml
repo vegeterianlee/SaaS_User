@@ -13,16 +13,6 @@ services:
     networks:
       - saas-network
 
-  nginx:
-    build: ./nginx
-    container_name: user-nginx
-    ports:
-      - "92:90"
-    depends_on:
-      - user
-    networks:
-      - saas-network
-
 volumes:
   mysql:
 

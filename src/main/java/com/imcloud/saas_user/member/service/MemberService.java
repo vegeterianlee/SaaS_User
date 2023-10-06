@@ -2,11 +2,13 @@ package com.imcloud.saas_user.member.service;
 
 import com.imcloud.saas_user.common.dto.ErrorMessage;
 import com.imcloud.saas_user.common.entity.Member;
+import com.imcloud.saas_user.common.entity.Subscription;
 import com.imcloud.saas_user.common.entity.UserSession;
 import com.imcloud.saas_user.common.entity.enums.Product;
 import com.imcloud.saas_user.common.entity.enums.UserRole;
 import com.imcloud.saas_user.common.jwt.JwtUtil;
 import com.imcloud.saas_user.common.repository.MemberRepository;
+import com.imcloud.saas_user.common.repository.SubscriptionRepository;
 import com.imcloud.saas_user.common.repository.UserSessionRepository;
 import com.imcloud.saas_user.common.security.UserDetailsImpl;
 import com.imcloud.saas_user.member.dto.LoginRequestDto;
@@ -30,7 +32,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import com.imcloud.saas_user.kafka.service.UserEventProducer;
+//import com.imcloud.saas_user.kafka.service.UserEventProducer;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import org.springframework.data.domain.PageRequest;
@@ -46,8 +48,9 @@ public class MemberService {
     private String adminTokenValue;
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
-    private final UserEventProducer userEventProducer;
+//    private final UserEventProducer userEventProducer;
     private final MemberRepository memberRepository;
+    private final SubscriptionRepository subscriptionRepository;
     private final UserSessionRepository userSessionRepository;
 
    /* private final WebClient.Builder webClientBuilder;
@@ -68,12 +71,6 @@ public class MemberService {
         Optional<Member> found = memberRepository.findByUserId(userId);
         if (found.isPresent()) {
             throw new IllegalArgumentException(ErrorMessage.USERID_DUPLICATION.getMessage());
-        }
-
-        // username 중복 확인
-        Optional<Member> founded = memberRepository.findByUsername(username);
-        if (founded.isPresent()) {
-            throw new IllegalArgumentException(ErrorMessage.USERNAME_DUPLICATION.getMessage());
         }
 
         Member newMember = Member.create(signupRequestDto, encodedPassword);
@@ -228,10 +225,11 @@ public class MemberService {
         );
 
         // 구독하고 있던 제품은 inactive로 바꾸기
-        userEventProducer.sendUserId(member.getUserId());
-
-        // 회원 정보 삭제는 UserEventConsumer에서 처리해줌
-        // 따로 delete method가 필요한 것이 아님
+        Subscription subscription = subscriptionRepository.findByMemberIdAndIsActive(member.getId(), true).orElseThrow(
+                () -> new EntityNotFoundException(ErrorMessage.SUBSCRIPTION_NOT_FOUND.getMessage())
+        );
+        subscription.setIsActive(false);
+        subscription.setEndDateNow();
     }
 
     @Transactional
