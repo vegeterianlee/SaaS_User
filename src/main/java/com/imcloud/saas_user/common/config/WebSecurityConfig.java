@@ -44,7 +44,7 @@ public class WebSecurityConfig implements WebMvcConfigurer {
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
         return (web) -> web.ignoring()
-                .antMatchers("/swagger-ui/**", "/v3/api-docs/**","/docs")
+                .antMatchers("/swagger-ui/**", "/v3/api-docs/**","/docs","/docs/**")
                 .antMatchers("/version")
                 .requestMatchers(PathRequest.toStaticResources().atCommonLocations());
     }
