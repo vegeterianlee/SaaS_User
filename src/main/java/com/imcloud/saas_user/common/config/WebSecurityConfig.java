@@ -19,6 +19,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsUtils;
+import org.springframework.web.filter.ForwardedHeaderFilter;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -91,6 +92,10 @@ public class WebSecurityConfig implements WebMvcConfigurer {
                 .maxAge(216000);
     }
 
+    @Bean
+    ForwardedHeaderFilter forwardedHeaderFilter() {
+        return new ForwardedHeaderFilter();
+    }
 
 //    @Override
 //    public void addCorsMappings(CorsRegistry registry) {
