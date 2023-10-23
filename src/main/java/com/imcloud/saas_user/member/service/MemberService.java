@@ -191,6 +191,20 @@ public class MemberService {
     }
 
     @Transactional
+    public void changeIsStorageEnabled(UserDetailsImpl userDetails) {
+        // 사용자 확인
+        Member member = memberRepository.findByUserId(userDetails.getUser().getUserId()).orElseThrow(
+                () -> new EntityNotFoundException(ErrorMessage.WRONG_USERID.getMessage())
+        );
+
+        // 비밀번호 변경
+        member.setRoleIsStorageEnabled();
+
+        // 변경된 멤버 저장
+        memberRepository.save(member);
+    }
+
+    @Transactional
     public MemberResponseDto updateProfile(UserDetailsImpl userDetails, ProfileUpdateRequestDto requestDto) {
         // Check that the user exists
         Member member = memberRepository.findByUserId(userDetails.getUser().getUserId()).orElseThrow(
@@ -230,6 +244,7 @@ public class MemberService {
         );
         subscription.setIsActive(false);
         subscription.setEndDateNow();
+        memberRepository.delete(member);
     }
 
     @Transactional

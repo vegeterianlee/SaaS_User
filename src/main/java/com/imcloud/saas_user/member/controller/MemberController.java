@@ -115,4 +115,13 @@ public class MemberController {
         memberService.promoteToAdmin(userDetails, adminToken);
         return ApiResponse.successOf(HttpStatus.OK, "관리자로 변경 완료");
     }
+
+    @PostMapping("/changeStorageStatus")
+    @Operation(summary = "Toggle Storage Usage Status", description = "Toggle the status of isStorageEnabled for the user")
+    public ApiResponse<String> changeStorageStatus(
+            @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        memberService.changeIsStorageEnabled(userDetails);
+        return ApiResponse.successOf(HttpStatus.OK, "스토리지 사용 상태 변경 완료");
+    }
+
 }

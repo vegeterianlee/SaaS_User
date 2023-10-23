@@ -59,6 +59,9 @@ dependencies {
     //WebClient
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
+    //aws s3 의존성 추가
+    implementation 'com.amazonaws:aws-java-sdk-s3:1.11.238'
+
     implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity5'
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
