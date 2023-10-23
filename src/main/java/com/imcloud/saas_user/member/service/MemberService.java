@@ -11,10 +11,7 @@ import com.imcloud.saas_user.common.repository.MemberRepository;
 import com.imcloud.saas_user.common.repository.SubscriptionRepository;
 import com.imcloud.saas_user.common.repository.UserSessionRepository;
 import com.imcloud.saas_user.common.security.UserDetailsImpl;
-import com.imcloud.saas_user.member.dto.LoginRequestDto;
-import com.imcloud.saas_user.member.dto.MemberResponseDto;
-import com.imcloud.saas_user.member.dto.ProfileUpdateRequestDto;
-import com.imcloud.saas_user.member.dto.SignupRequestDto;
+import com.imcloud.saas_user.member.dto.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -169,9 +166,12 @@ public class MemberService {
     }
 
 
-    public MemberResponseDto getUserByToken(UserDetailsImpl userDetails) {
-        Member member = userDetails.getUser();
-        return MemberResponseDto.of(member);
+    public ProfileResponseDto getUserByToken(UserDetailsImpl userDetails) {
+        // 사용자 확인
+        Member member = memberRepository.findByUserId(userDetails.getUser().getUserId())
+                .orElseThrow(() -> new EntityNotFoundException(ErrorMessage.WRONG_USERID.getMessage()));
+
+        return ProfileResponseDto.of(member);
     }
 
     @Transactional

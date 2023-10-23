@@ -3,10 +3,7 @@ package com.imcloud.saas_user.member.controller;
 import com.imcloud.saas_user.common.dto.ApiResponse;
 import com.imcloud.saas_user.common.entity.UserSession;
 import com.imcloud.saas_user.common.security.UserDetailsImpl;
-import com.imcloud.saas_user.member.dto.LoginRequestDto;
-import com.imcloud.saas_user.member.dto.MemberResponseDto;
-import com.imcloud.saas_user.member.dto.ProfileUpdateRequestDto;
-import com.imcloud.saas_user.member.dto.SignupRequestDto;
+import com.imcloud.saas_user.member.dto.*;
 import com.imcloud.saas_user.member.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -82,9 +79,9 @@ public class MemberController {
         return ApiResponse.successOf(HttpStatus.OK, memberService.checkUserId(userId));
     }
 
-    @GetMapping
-    @Operation(summary = "토큰으로 member 정보 조회 (Query member information with token)", description = "Query member information with token")
-    public ApiResponse<MemberResponseDto> getUserByToken(
+    @GetMapping("/getProfile")
+    @Operation(summary = "토큰으로 member 정보 조회 (Query member profile with token)", description = "Query member information with token")
+    public ApiResponse<ProfileResponseDto> getUserByToken(
             @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {
         return ApiResponse.successOf(HttpStatus.OK, memberService.getUserByToken(userDetails));

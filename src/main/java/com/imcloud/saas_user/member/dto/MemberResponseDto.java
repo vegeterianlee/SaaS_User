@@ -40,10 +40,10 @@ public class MemberResponseDto {
     private Product product;
 
     @Schema(type = "integer", example = "854MB", description = "사용된 데이터 용량")
-    private Long dataUsage; // 추가된 필드
+    private Long dataUsage;
 
     @Schema(type = "integer", example = "854MB", description = "충전된 토큰수(KB)")
-    private Long userToken; // 추가된 필드
+    private Long userToken;
 
     private LocalDateTime createdAt;
     private LocalDateTime modifiedAt;
