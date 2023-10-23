@@ -120,8 +120,9 @@ public class MemberController {
     @Operation(summary = "Toggle Storage Usage Status", description = "Toggle the status of isStorageEnabled for the user")
     public ApiResponse<String> changeStorageStatus(
             @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        memberService.changeIsStorageEnabled(userDetails);
-        return ApiResponse.successOf(HttpStatus.OK, "스토리지 사용 상태 변경 완료");
+        boolean isStorageEnabled = memberService.changeIsStorageEnabled(userDetails);
+        String message = isStorageEnabled ? "스토리지 사용 활성화 완료" : "스토리지 사용 비활성화 완료";
+        return ApiResponse.successOf(HttpStatus.OK, message);
     }
 
 }

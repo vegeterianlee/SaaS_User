@@ -191,7 +191,7 @@ public class MemberService {
     }
 
     @Transactional
-    public void changeIsStorageEnabled(UserDetailsImpl userDetails) {
+    public boolean changeIsStorageEnabled(UserDetailsImpl userDetails) {
         // 사용자 확인
         Member member = memberRepository.findByUserId(userDetails.getUser().getUserId()).orElseThrow(
                 () -> new EntityNotFoundException(ErrorMessage.WRONG_USERID.getMessage())
@@ -202,6 +202,9 @@ public class MemberService {
 
         // 변경된 멤버 저장
         memberRepository.save(member);
+
+        // 변경된 스토리지 사용 상태 반환
+        return member.getIsStorageEnabled();
     }
 
     @Transactional
