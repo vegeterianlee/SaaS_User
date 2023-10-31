@@ -1,6 +1,7 @@
 package com.imcloud.saas_user.common.entity;
 
 import com.imcloud.saas_user.board.dto.BoardRequestDto;
+import com.imcloud.saas_user.common.entity.enums.UserRole;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -52,10 +53,13 @@ public class Board extends Timestamped {
 //    }
 
     public static Board create(BoardRequestDto dto, Member member) {
+        Boolean isCommentedByAdmin = (member.getRole() == UserRole.ADMIN) ? true : false;
+
         return Board.builder()
                 .title(dto.getTitle())
                 .content(dto.getContent())
                 .viewCount(0L)
+                .hasAdminComment(isCommentedByAdmin)
                 .member(member)
                 .build();
     }

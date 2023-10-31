@@ -243,9 +243,7 @@ public class MemberService {
         if (requestDto.getInstitution() != null) {
             member.setInstitution(requestDto.getInstitution());
         }
-        if (requestDto.getNewPassword() != null) {
-            member.setPassword(passwordEncoder.encode(requestDto.getNewPassword()));
-        }
+
         // Return a response
         return MemberResponseDto.of(member);
     }
