@@ -1,5 +1,6 @@
 package com.imcloud.saas_user.common.entity;
 
+import com.imcloud.saas_user.common.entity.enums.PaymentStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -20,37 +21,49 @@ public class Payment extends Timestamped {
     private Long id;
 
     @Column(nullable = false)
-    private Long memberId;
+    private String userId;
 
     @Column(nullable = false)
     private int totalPrice;
 
-    @Column(nullable = false)
+    @Column
     private LocalDateTime paymentDate;
 
-    @Column(nullable = false, length = 30)
+    @Column
     private String paymentMethod;
 
-    @Column(nullable = false, length = 19)
+    @Column
     private String cardNumber;
 
-    @Column(nullable = false, length = 15)
+    @Column
     private String cardUserName;
 
-    @Column(nullable = false)
+    @Column
     private String cardExpiredMonth;  // 01-12
 
-    @Column(nullable = false)
+    @Column
     private String cardExpiredYear;  // 년도 (2자리)
 
-    @Column(nullable = false)
+    @Column
     private String cardCvv;
 
-    @Column(nullable = false)
+    @Column
     private String country;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private PaymentStatus paymentStatus;
 
     @OneToOne
     @JoinColumn(name = "subscriptionId")
     private Subscription subscription;
 
+
+    public void setTotalPrice(int totalPrice) {
+        this.totalPrice = totalPrice;
+    }
+
+    public void setSubscription(Subscription subscription) {
+        this.subscription = subscription;
+    }
 }

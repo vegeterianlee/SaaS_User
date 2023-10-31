@@ -122,4 +122,13 @@ public class MemberController {
         return ApiResponse.successOf(HttpStatus.OK, message);
     }
 
+    @PostMapping("/changeKLTStatus")
+    @Operation(summary = "Toggle KLT Usage Status", description = "Toggle the status of isKLTEnabled for the user")
+    public ApiResponse<String> changeKLTStatus(
+            @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        boolean isKLTEnabled = memberService.changeIsKLTEnabled(userDetails);
+        String message = isKLTEnabled ? "KLT 사용 활성화 완료" : "KLT 사용 비활성화 완료";
+        return ApiResponse.successOf(HttpStatus.OK, message);
+    }
+
 }

@@ -10,10 +10,15 @@ import com.amazonaws.services.s3.model.*;
 import com.amazonaws.util.IOUtils;
 import com.imcloud.saas_user.common.dto.ErrorMessage;
 import com.imcloud.saas_user.common.entity.Member;
+import com.imcloud.saas_user.common.entity.Payment;
 import com.imcloud.saas_user.common.entity.StorageLog;
+import com.imcloud.saas_user.common.entity.Subscription;
+import com.imcloud.saas_user.common.entity.enums.PaymentStatus;
 import com.imcloud.saas_user.common.entity.enums.Product;
 import com.imcloud.saas_user.common.repository.MemberRepository;
+import com.imcloud.saas_user.common.repository.PaymentRepository;
 import com.imcloud.saas_user.common.repository.StorageLogRepository;
+import com.imcloud.saas_user.common.repository.SubscriptionRepository;
 import com.imcloud.saas_user.common.security.UserDetailsImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,6 +43,9 @@ public class NaverObjectStorageService {
 
     private final MemberRepository memberRepository;
     private final StorageLogRepository storageLogRepository;
+    private final PaymentRepository paymentRepository;
+    private final SubscriptionRepository subscriptionRepository;
+
 
     @Value("${cloud.aws.credentials.access-key}")
     private String accessKey;
@@ -91,6 +99,8 @@ public class NaverObjectStorageService {
         Long estimatedNetworkTraffic = (long) (file.getSize() * 1.10)/ 1024;
         StorageLog log = StorageLog.create(userId, estimatedNetworkTraffic, objectKey);
         storageLogRepository.save(log);
+
+        processAdditionalCharge(member, estimatedNetworkTraffic / 10);
         return objectKey;
     }
 
@@ -229,6 +239,33 @@ public class NaverObjectStorageService {
     private void checkIfStorageEnabled(Member member) {
         if (!member.getIsStorageEnabled()) {
             throw new EntityNotFoundException(ErrorMessage.STORAGE_NOT_ENABLED.getMessage());
+        }
+    }
+
+    @Transactional
+    public void processAdditionalCharge(Member member, Long estimatedNetworkTraffic) {
+        int additionalChargeAmount = estimatedNetworkTraffic.intValue();
+
+        // 먼저 해당 사용자의 PaymentStatus.UNPAID 상태인 Payment 객체를 조회합니다.
+        Payment unpaidPayment = paymentRepository.findByUserIdAndPaymentStatus(member.getUserId(), PaymentStatus.UNPAID);
+//        Subscription subscription = subscriptionRepository.findByUserIdAndIsActive(member.getUserId(), true).orElseThrow(
+//                () -> new EntityNotFoundException(ErrorMessage.SUBSCRIPTION_NOT_FOUND.getMessage())
+//        );
+
+        if (unpaidPayment == null) {
+            // 해당 객체가 없다면 새로운 Payment 객체를 생성합니다.
+            Payment payment = Payment.builder()
+                    .userId(member.getUserId())
+                    .totalPrice(additionalChargeAmount)
+                    .paymentStatus(PaymentStatus.UNPAID)
+//                    .subscription(subscription)
+                    .build();
+            paymentRepository.save(payment);
+
+        } else {
+            // 이미 PaymentStatus.UNPAID 상태인 객체가 있다면 추가 요금을 기존 금액에 더합니다.
+            unpaidPayment.setTotalPrice(unpaidPayment.getTotalPrice() + additionalChargeAmount);
+            paymentRepository.save(unpaidPayment);
         }
     }
 }

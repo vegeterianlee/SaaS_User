@@ -30,7 +30,7 @@ public class Board extends Timestamped {
     private Long viewCount;
 
     @Column(nullable = false, columnDefinition = "boolean default false")
-    private boolean hasAdminComment;
+    private Boolean hasAdminComment;
 
     @ManyToOne
     private Member member;

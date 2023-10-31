@@ -11,9 +11,9 @@ import java.util.Optional;
 @Repository
 public interface SubscriptionRepository extends JpaRepository<Subscription, Long> {
 
-    Optional<Subscription>findByMemberId(Long memberId);
-    Optional<Subscription> findByMemberIdAndIsActive(Long memberId, Boolean isActive);
+    Optional<Subscription>findByUserId(String userId);
+    List<Subscription>findAllByUserId(String userId);
+    Optional<Subscription> findByUserIdAndIsActive(String userId, Boolean isActive);
     List<Subscription> findAllByEndDateBeforeAndIsActive(LocalDateTime endDate, Boolean isActive);
-    List<Subscription> findByMemberIdAndEndDateAfterOrderByEndDateDesc(Long memberId, LocalDateTime currentDate);
 }
 

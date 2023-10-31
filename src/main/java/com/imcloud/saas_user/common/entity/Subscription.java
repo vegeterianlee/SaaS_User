@@ -17,8 +17,8 @@ public class Subscription extends Timestamped {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false) //unique = true로 설정 시, 회원별로 오직 하나의 구독만 가능하다
-    private Long memberId;
+    @Column(nullable = false)
+    private Long userId;
 
     @OneToOne(mappedBy = "subscription", cascade = CascadeType.ALL)
     private Payment payment;

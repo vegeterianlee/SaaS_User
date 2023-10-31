@@ -112,7 +112,7 @@ public class MemberService {
         return MemberResponseDto.of(member, jwtToken);
     }
 
-    @Scheduled(fixedRate = 60000)  // 60,000 milliseconds = 1 minute
+    @Scheduled(fixedRate = 600000)  // 60,000 milliseconds = 1 minute
     public void invalidateExpiredSessions() {
         LocalDateTime now = LocalDateTime.now();
         List<UserSession> expiredSessions = userSessionRepository.findByExpirationTimeBeforeAndUserStatus(now, true);
@@ -197,7 +197,6 @@ public class MemberService {
                 () -> new EntityNotFoundException(ErrorMessage.WRONG_USERID.getMessage())
         );
 
-        // 비밀번호 변경
         member.setRoleIsStorageEnabled();
 
         // 변경된 멤버 저장
@@ -206,6 +205,23 @@ public class MemberService {
         // 변경된 스토리지 사용 상태 반환
         return member.getIsStorageEnabled();
     }
+
+    @Transactional
+    public boolean changeIsKLTEnabled(UserDetailsImpl userDetails) {
+        // 사용자 확인
+        Member member = memberRepository.findByUserId(userDetails.getUser().getUserId()).orElseThrow(
+                () -> new EntityNotFoundException(ErrorMessage.WRONG_USERID.getMessage())
+        );
+
+        member.setRoleisKLTEnabled();
+
+        // 변경된 멤버 저장
+        memberRepository.save(member);
+
+        // 변경된 스토리지 사용 상태 반환
+        return member.getIsKLTEnabled();
+    }
+
 
     @Transactional
     public MemberResponseDto updateProfile(UserDetailsImpl userDetails, ProfileUpdateRequestDto requestDto) {
@@ -242,7 +258,7 @@ public class MemberService {
         );
 
         // 구독하고 있던 제품은 inactive로 바꾸기
-        Subscription subscription = subscriptionRepository.findByMemberIdAndIsActive(member.getId(), true).orElseThrow(
+        Subscription subscription = subscriptionRepository.findByUserIdAndIsActive(member.getUserId(), true).orElseThrow(
                 () -> new EntityNotFoundException(ErrorMessage.SUBSCRIPTION_NOT_FOUND.getMessage())
         );
         subscription.setIsActive(false);

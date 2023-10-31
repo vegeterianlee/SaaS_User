@@ -28,7 +28,7 @@ public class Member extends Timestamped {
     @Column(nullable = false)
     private String password;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String username;
 
     @Column(nullable = false)
@@ -51,6 +51,9 @@ public class Member extends Timestamped {
     @Column(nullable = false)
     private Boolean isStorageEnabled;
 
+    @Column(nullable = false)
+    private Boolean isKLTEnabled;
+
     @Column(nullable = false, columnDefinition = "bigint default 0")
     private Long dataUsage; // 추가된 필드
 
@@ -71,6 +74,7 @@ public class Member extends Timestamped {
                 .phone(signupRequestDto.getPhone())
                 .institution(signupRequestDto.getInstitution())
                 .isStorageEnabled(false)
+                .isKLTEnabled(false)
                 .role(UserRole.USER)
                 .dataUsage(0L)
                 .userToken(Product.STANDARD.getDataCapacity())
@@ -86,6 +90,10 @@ public class Member extends Timestamped {
     }
     public void setRoleIsStorageEnabled() {
         this.isStorageEnabled = !isStorageEnabled;
+    }
+
+    public void setRoleisKLTEnabled() {
+        this.isKLTEnabled = !isKLTEnabled;
     }
 
     public void setProduct(Product product) {

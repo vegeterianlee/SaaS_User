@@ -38,6 +38,9 @@ public class BoardResponseDto {
     @Schema(example = "작성자 닉네임")
     private String username;
 
+    @Schema(example = "문의 사항 처리 상태")
+    private Boolean hasAdminComment;
+
     @Schema(example = "문의 사항 조회 수")
     private Long viewCount;
 
@@ -65,6 +68,7 @@ public class BoardResponseDto {
         BoardResponseDtoBuilder builder = BoardResponseDto.builder()
                 .id(board.getId())
                 .title(board.getTitle())
+                .hasAdminComment(board.getHasAdminComment())
                 .username(board.getMember().getUsername())
                 .content(board.getContent())
                 .viewCount(board.getViewCount())
