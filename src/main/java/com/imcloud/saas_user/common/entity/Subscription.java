@@ -18,7 +18,7 @@ public class Subscription extends Timestamped {
     private Long id;
 
     @Column(nullable = false)
-    private Long userId;
+    private String userId;
 
     @OneToOne(mappedBy = "subscription", cascade = CascadeType.ALL)
     private Payment payment;
