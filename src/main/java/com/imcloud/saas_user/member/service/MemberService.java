@@ -219,7 +219,7 @@ public class MemberService {
         memberRepository.save(member);
 
         // 변경된 스토리지 사용 상태 반환
-        return member.getIsKLTEnabled();
+        return member.getIsKltEnabled();
     }
 
 
