@@ -220,7 +220,7 @@ public class MemberService {
             memberRepository.save(member);
         } else {
             // If the product is not ENTERPRISE, you can throw an exception or handle it as per your business logic.
-            throw new UnsupportedOperationException("KLT Enabled change is not supported for non-ENTERPRISE products.");
+            throw new EntityNotFoundException("KLT Enabled change is not supported for non-ENTERPRISE products.");
         }
 
         // 변경된 스토리지 사용 상태 반환
