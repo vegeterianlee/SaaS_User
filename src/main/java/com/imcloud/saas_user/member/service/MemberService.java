@@ -213,10 +213,15 @@ public class MemberService {
                 () -> new EntityNotFoundException(ErrorMessage.WRONG_USERID.getMessage())
         );
 
-        member.setRoleisKLTEnabled();
-
-        // 변경된 멤버 저장
-        memberRepository.save(member);
+        // 제품이 ENTERPRISE일 때만 적용
+        if (Product.ENTERPRISE.equals(member.getProduct())) {
+            member.setRoleisKLTEnabled();
+            // 변경된 멤버 저장
+            memberRepository.save(member);
+        } else {
+            // If the product is not ENTERPRISE, you can throw an exception or handle it as per your business logic.
+            throw new UnsupportedOperationException("KLT Enabled change is not supported for non-ENTERPRISE products.");
+        }
 
         // 변경된 스토리지 사용 상태 반환
         return member.getIsKltEnabled();
