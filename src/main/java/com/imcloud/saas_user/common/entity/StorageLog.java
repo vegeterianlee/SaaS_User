@@ -26,6 +26,9 @@ public class StorageLog extends Timestamped {
     private String objectKey;
 
     @Column(nullable = false)
+    private Boolean isPaid;
+
+    @Column(nullable = false)
     private Long networkTraffic;  // Assuming in KB
 
     @Column(nullable = false)
@@ -35,6 +38,7 @@ public class StorageLog extends Timestamped {
         return StorageLog.builder()
                 .userId(userId)
                 .networkTraffic(networkTraffic)
+                .isPaid(false)
                 .objectKey(objectKey)
                 .storedAt(LocalDateTime.now())
                 .build();
