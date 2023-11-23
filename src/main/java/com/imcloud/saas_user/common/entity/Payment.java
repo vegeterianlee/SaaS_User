@@ -24,6 +24,9 @@ public class Payment extends Timestamped {
     private String userId;
 
     @Column(nullable = false)
+    private String productName;
+
+    @Column(nullable = false)
     private int totalPrice;
 
     @Column

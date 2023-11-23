@@ -21,4 +21,5 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     // userId와 PaymentStatus를 기반으로 Payment 객체 조회
     Payment findByUserIdAndPaymentStatus(String userId, PaymentStatus paymentStatus);
 
+    Payment findByUserIdAndPaymentStatusAndProductName(String userId, PaymentStatus paymentStatus, String productName);
 }

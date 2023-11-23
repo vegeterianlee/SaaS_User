@@ -100,7 +100,7 @@ public class NaverObjectStorageService {
         StorageLog log = StorageLog.create(userId, estimatedNetworkTraffic, objectKey);
         storageLogRepository.save(log);
 
-        processAdditionalCharge(member, estimatedNetworkTraffic / 10);
+        processAdditionalCharge(member, estimatedNetworkTraffic / 100);
         return objectKey;
     }
 
@@ -247,14 +247,12 @@ public class NaverObjectStorageService {
         int additionalChargeAmount = estimatedNetworkTraffic.intValue();
 
         // 먼저 해당 사용자의 PaymentStatus.UNPAID 상태인 Payment 객체를 조회합니다.
-        Payment unpaidPayment = paymentRepository.findByUserIdAndPaymentStatus(member.getUserId(), PaymentStatus.UNPAID);
-//        Subscription subscription = subscriptionRepository.findByUserIdAndIsActive(member.getUserId(), true).orElseThrow(
-//                () -> new EntityNotFoundException(ErrorMessage.SUBSCRIPTION_NOT_FOUND.getMessage())
-//        );
-
+        Payment unpaidPayment = paymentRepository.findByUserIdAndPaymentStatusAndProductName(
+                member.getUserId(), PaymentStatus.UNPAID, "OBJECTSTORAGE");
         if (unpaidPayment == null) {
             // 해당 객체가 없다면 새로운 Payment 객체를 생성합니다.
             Payment payment = Payment.builder()
+                    .productName("OBJECTSTORAGE")
                     .userId(member.getUserId())
                     .totalPrice(additionalChargeAmount)
                     .paymentStatus(PaymentStatus.UNPAID)
