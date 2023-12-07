@@ -29,6 +29,9 @@ public class ActivityLogResponseDto {
     @Schema(type = "string", example = "example.txt", description = "File Name")
     private String fileName;
 
+    @Schema(type = "string", example = "Processed", description = "Process checking")
+    private String status;
+
     @Schema(type = "string", example = "5", description = "Processing Time")
     private String processingTime;
 
@@ -70,6 +73,7 @@ public class ActivityLogResponseDto {
                 .userId(activityLog.getUserId())
                 .ipAddress(activityLog.getIpAddress())
                 .fileName(activityLog.getFileName())
+                .status(activityLog.getStatus())
                 .processingTime(activityLog.getProcessingTime())
                 .createdAt(activityLog.getCreatedAt())
                 .numberOfColumns(activityLog.getLogDetailSet() != null ? activityLog.getLogDetailSet().size() : 0);
