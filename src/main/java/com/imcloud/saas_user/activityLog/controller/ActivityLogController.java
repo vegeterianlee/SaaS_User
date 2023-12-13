@@ -46,4 +46,14 @@ public class ActivityLogController {
             @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails) {
         return ApiResponse.successOf(HttpStatus.OK, activityLogService.getAllActivityLogsCount(userDetails));
     }
+
+    @GetMapping("/7daysHistory")
+    @Operation(summary = "사용자의 최근 7일간 비식별 처리 히스토리 조회 (Get user's last 7 days Processing history)",
+            description = "Page starts with 1, sort in descending order of modification date")
+    public ApiResponse<Page<ActivityLogResponseDto>> getActivityLogsBy7days(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        return ApiResponse.successOf(HttpStatus.OK, activityLogService.getActivityLogsBy7days(page, size, userDetails));
+    }
 }

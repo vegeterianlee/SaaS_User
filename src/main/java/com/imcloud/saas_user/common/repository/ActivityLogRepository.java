@@ -8,14 +8,19 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Repository
 public interface ActivityLogRepository extends JpaRepository<ActivityLog, Long> {
     @EntityGraph(attributePaths = "logDetailSet")
-    @Query("select a from ActivityLog a where a.userId = :userId ORDER BY a.id DESC")
+    @Query("select a from ActivityLog a where a.userId = :userId AND a.status = 'Completed' ORDER BY a.id DESC")
     Page<ActivityLog> findActivityLogsByUserIdWithDetails(String userId, Pageable pageable);
 
+    @EntityGraph(attributePaths = "logDetailSet")
+    @Query("SELECT a FROM ActivityLog a WHERE a.userId = :userId AND a.modifiedAt >= :startDate AND a.status <> 'error' ORDER BY a.id DESC")
+    Page<ActivityLog> findActivityLogsByUserIdAndDateRangeAndStatusNot(
+           String userId, LocalDate startDate, Pageable pageable);
 
     @Query("select a.id from ActivityLog a where a.userId = :userId ORDER BY a.id DESC")
     Page<Long> findActivityLogIdsByUserId(String userId, Pageable pageable);

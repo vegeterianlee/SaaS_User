@@ -48,7 +48,7 @@ public class Payment extends Timestamped {
     private String cardExpiredYear;  // 년도 (2자리)
 
     @Column
-    private String cardCvv;
+    private String cardCvc;
 
     @Column
     private String country;
