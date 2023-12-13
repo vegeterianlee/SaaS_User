@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import javax.persistence.EntityNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -42,6 +43,26 @@ public class ActivityLogService {
     private ActivityLogResponseDto toDto(ActivityLog activityLog) {
         return ActivityLogResponseDto.of(activityLog);
     }
+
+    @Transactional(readOnly = true)
+    public Page<ActivityLogResponseDto> getActivityLogsBy7days(Integer page, Integer size, UserDetailsImpl userDetails) {
+        // 사용자 확인
+        Member member = memberRepository.findByUserId(userDetails.getUser().getUserId()).orElseThrow(
+                () -> new EntityNotFoundException(ErrorMessage.WRONG_USERID.getMessage())
+        );
+
+        Pageable pageable = PageRequest.of(page-1, size);
+
+        // 현재 날짜로부터 7일 전까지의 날짜 계산
+        LocalDate sevenDaysAgo = LocalDate.now().minusDays(7);
+
+        // 수정된 레포지토리 메서드 호출
+        Page<ActivityLog> logs = activityLogRepository.findActivityLogsByUserIdAndDateRangeAndStatusNot(
+                member.getUserId(), sevenDaysAgo, pageable);
+
+        return logs.map(this::toDto);
+    }
+
 
     @Transactional(readOnly = true)
     public Map<Integer, Long> getActivityLogsCountByMonth(UserDetailsImpl userDetails) {
