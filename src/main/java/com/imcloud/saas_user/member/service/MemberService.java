@@ -227,6 +227,28 @@ public class MemberService {
         return member.getIsKltEnabled();
     }
 
+    @Transactional
+    public boolean checkObj(UserDetailsImpl userDetails) {
+        // 사용자 확인
+        Member member = memberRepository.findByUserId(userDetails.getUser().getUserId()).orElseThrow(
+                () -> new EntityNotFoundException(ErrorMessage.WRONG_USERID.getMessage())
+        );
+
+        // 변경된 스토리지 사용 상태 반환
+        return member.getIsStorageEnabled();
+    }
+
+    @Transactional
+    public boolean checkKLT(UserDetailsImpl userDetails) {
+        // 사용자 확인
+        Member member = memberRepository.findByUserId(userDetails.getUser().getUserId()).orElseThrow(
+                () -> new EntityNotFoundException(ErrorMessage.WRONG_USERID.getMessage())
+        );
+
+        // 변경된 스토리지 사용 상태 반환
+        return member.getIsKltEnabled();
+    }
+
 
     @Transactional
     public MemberResponseDto updateProfile(UserDetailsImpl userDetails, ProfileUpdateRequestDto requestDto) {
