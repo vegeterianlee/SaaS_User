@@ -131,4 +131,19 @@ public class MemberController {
         return ApiResponse.successOf(HttpStatus.OK, message);
     }
 
+    @GetMapping("/checkStorage")
+    @Operation(summary = "Check Storage Usage Status", description = "Check the status of isStorageEnabled for the user")
+    public ApiResponse<Boolean> checkStorageStatus(
+            @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        boolean isStorageEnabled = memberService.checkObj(userDetails);
+        return ApiResponse.successOf(HttpStatus.OK, isStorageEnabled);
+    }
+
+    @GetMapping("/checkKLT")
+    @Operation(summary = "Check KLT Usage Status", description = "Check the status of isKLTEnabled for the user")
+    public ApiResponse<Boolean> checkKLTStatus(
+            @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        boolean isKLTEnabled = memberService.checkKLT(userDetails);
+        return ApiResponse.successOf(HttpStatus.OK, isKLTEnabled);
+    }
 }
