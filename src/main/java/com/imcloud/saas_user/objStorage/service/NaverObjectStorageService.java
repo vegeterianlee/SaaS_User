@@ -7,21 +7,21 @@ import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.*;
-import com.amazonaws.util.IOUtils;
 import com.imcloud.saas_user.common.dto.ErrorMessage;
-import com.imcloud.saas_user.common.entity.Member;
-import com.imcloud.saas_user.common.entity.Payment;
-import com.imcloud.saas_user.common.entity.StorageLog;
-import com.imcloud.saas_user.common.entity.Subscription;
+import com.imcloud.saas_user.common.entity.*;
+import com.imcloud.saas_user.common.entity.enums.FileActionType;
 import com.imcloud.saas_user.common.entity.enums.PaymentStatus;
 import com.imcloud.saas_user.common.entity.enums.Product;
-import com.imcloud.saas_user.common.repository.MemberRepository;
-import com.imcloud.saas_user.common.repository.PaymentRepository;
-import com.imcloud.saas_user.common.repository.StorageLogRepository;
-import com.imcloud.saas_user.common.repository.SubscriptionRepository;
+import com.imcloud.saas_user.common.repository.*;
 import com.imcloud.saas_user.common.security.UserDetailsImpl;
+import com.imcloud.saas_user.fileAction.dto.FileActionDto;
+import com.imcloud.saas_user.objStorage.dto.StorageLogResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -45,6 +45,7 @@ public class NaverObjectStorageService {
     private final StorageLogRepository storageLogRepository;
     private final PaymentRepository paymentRepository;
     private final SubscriptionRepository subscriptionRepository;
+    private final FileActionRepository fileActionRepository;
 
 
     @Value("${cloud.aws.credentials.access-key}")
@@ -69,7 +70,7 @@ public class NaverObjectStorageService {
                 .build();
     }
     @Transactional
-    public String handleUpload(MultipartFile file, UserDetailsImpl userDetails, String folder) throws IOException {
+    public FileActionDto handleUpload(MultipartFile file, String fileName, UserDetailsImpl userDetails) throws IOException {
         Member member = memberRepository.findByUserId(userDetails.getUser().getUserId()).orElseThrow(
                 () -> new EntityNotFoundException(ErrorMessage.WRONG_USERID.getMessage())
         );
@@ -77,7 +78,8 @@ public class NaverObjectStorageService {
         checkIfStorageEnabled(member);
 
         String userId = member.getUserId();
-        String objectKey = "de-identification/" + folder + "/" + userId + "/" + file.getOriginalFilename();
+        String uniqueUserId = UUID.randomUUID().toString() + "_" + userId;
+        String objectKey = "de-identification/original/" + uniqueUserId + "/" + fileName;
 
         // If the member's product is ENTERPRISE, encode the data
         if(member.getProduct() == Product.ENTERPRISE) {
@@ -97,11 +99,43 @@ public class NaverObjectStorageService {
 
         // Create a StorageLog entry
         Long estimatedNetworkTraffic = (long) (file.getSize() * 1.10)/ 1024;
-        StorageLog log = StorageLog.create(userId, estimatedNetworkTraffic, objectKey);
+        StorageLog log = StorageLog.create(userId, fileName, estimatedNetworkTraffic, objectKey);
+        FileAction fileAction = FileAction.create(fileName, objectKey, userId);
+
+        fileActionRepository.save(fileAction);
         storageLogRepository.save(log);
 
         processAdditionalCharge(member, estimatedNetworkTraffic / 100);
-        return objectKey;
+        return FileActionDto.of(fileAction);
+    }
+
+    @Transactional
+    public boolean toggleToBeDeidentified(UserDetailsImpl userDetails, Long storageLogId) {
+        Member member = memberRepository.findByUserId(userDetails.getUser().getUserId()).orElseThrow(
+                () -> new EntityNotFoundException(ErrorMessage.WRONG_USERID.getMessage())
+        );
+
+        FileAction fileAction = fileActionRepository.findById(storageLogId)
+                .orElseThrow(() -> new EntityNotFoundException("StorageLog not found with id: " + storageLogId));
+
+        // 현재 값 토글
+        fileAction.setToBeDeidentified(!fileAction.getToBeDeidentified());
+        fileActionRepository.save(fileAction);
+
+        // 변경된 값을 반환
+        return fileAction.getToBeDeidentified();
+    }
+
+    public boolean checkToBeDeidentified(UserDetailsImpl userDetails, Long storageLogId) {
+        Member member = memberRepository.findByUserId(userDetails.getUser().getUserId()).orElseThrow(
+                () -> new EntityNotFoundException(ErrorMessage.WRONG_USERID.getMessage())
+        );
+
+        FileAction fileAction = fileActionRepository.findById(storageLogId)
+                .orElseThrow(() -> new EntityNotFoundException("StorageLog not found with id: " + storageLogId));
+
+        // 현재 상태 반환
+        return fileAction.getToBeDeidentified();
     }
 
     @Transactional(readOnly = true)
@@ -120,8 +154,34 @@ public class NaverObjectStorageService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public Page<FileActionDto> searchFiles(UserDetailsImpl userDetails,
+                                           String fileName,
+                                           String objectKey,
+                                           Boolean toBeDeidentified,
+                                           LocalDateTime storedAtStart,
+                                           LocalDateTime storedAtEnd,
+                                           LocalDateTime isDeidentifiedAtStart,
+                                           LocalDateTime isDeidentifiedAtEnd,
+                                           Integer page,
+                                           Integer size) {
+        Member member = memberRepository.findByUserId(userDetails.getUser().getUserId())
+                .orElseThrow(() -> new EntityNotFoundException(ErrorMessage.WRONG_USERID.getMessage()));
+
+        // Check if storage is enabled for the user
+        checkIfStorageEnabled(member);
+
+        Pageable pageable = PageRequest.of(page - 1, size);
+        Specification<FileAction> spec = FileActionSpecifications.withDynamicQuery(
+                toBeDeidentified, fileName, objectKey, storedAtStart, storedAtEnd, isDeidentifiedAtStart, isDeidentifiedAtEnd);
+
+        Page<FileAction> fileActionsPage = fileActionRepository.findAll(spec, pageable);
+        return fileActionsPage.map(FileActionDto::of);
+    }
+
+
     @Transactional
-    public void deleteFile(String objectKey, UserDetailsImpl userDetails, String folder) {
+    public void deleteFile(String objectKey, UserDetailsImpl userDetails) {
         Member member = memberRepository.findByUserId(userDetails.getUser().getUserId()).orElseThrow(
                 () -> new EntityNotFoundException(ErrorMessage.WRONG_USERID.getMessage())
         );
@@ -129,20 +189,19 @@ public class NaverObjectStorageService {
         // Check if storage is enabled for the user
         checkIfStorageEnabled(member);
 
-        String prefix = "de-identification/"  + folder + "/" + member.getUserId() + "/";
-        if (objectKey.startsWith(prefix)) {
-            s3.deleteObject(bucketName, objectKey);
-        }
+        // Delete the object from S3 bucket
+        s3.deleteObject(bucketName, objectKey);
 
-        StorageLog log = storageLogRepository.findByObjectKey(objectKey).orElseThrow(
+        // Delete the corresponding log from the database
+        FileAction fileAction = fileActionRepository.findByObjectKey(objectKey).orElseThrow(
                 () -> new EntityNotFoundException(ErrorMessage.STORAGELOG_NOT_FOUND.getMessage())
         );
 
-        storageLogRepository.delete(log);
+        fileActionRepository.delete(fileAction);
     }
 
     @Transactional(readOnly = true)
-    public String getSignedUrl(String objectKey, UserDetailsImpl userDetails, String folder) throws IOException {
+    public String getSignedUrl(String objectKey, UserDetailsImpl userDetails) throws IOException {
         Member member = memberRepository.findByUserId(userDetails.getUser().getUserId()).orElseThrow(
                 () -> new EntityNotFoundException(ErrorMessage.WRONG_USERID.getMessage())
         );
@@ -150,13 +209,8 @@ public class NaverObjectStorageService {
         // Check if storage is enabled for the user
         checkIfStorageEnabled(member);
 
-        String prefix = "de-identification/" + folder + "/" + member.getUserId() + "/";
-        if (!objectKey.startsWith(prefix)) {
-            throw new IllegalArgumentException("유저의 폴더 내부가 아닌 object key입니다.");
-        }
-
         // If the member's product is ENTERPRISE, decode the data
-        if (member.getProduct() == Product.ENTERPRISE) {
+        /*if (member.getProduct() == Product.ENTERPRISE) {
             S3Object s3Object = s3.getObject(bucketName, objectKey);
             InputStream objectData = s3Object.getObjectContent();
             byte[] bytes = IOUtils.toByteArray(objectData);
@@ -175,14 +229,15 @@ public class NaverObjectStorageService {
                     .withExpiration(expiration);
             URL signedUrl = s3.generatePresignedUrl(generatePresignedUrlRequest);
             return signedUrl.toString();
-        } else {
-            Date expiration = new Date(System.currentTimeMillis() + 3600 * 1000);
-            GeneratePresignedUrlRequest generatePresignedUrlRequest = new GeneratePresignedUrlRequest(bucketName, objectKey)
-                    .withMethod(HttpMethod.GET)
-                    .withExpiration(expiration);
-            URL signedUrl = s3.generatePresignedUrl(generatePresignedUrlRequest);
-            return signedUrl.toString();
-        }
+        } else */
+
+        Date expiration = new Date(System.currentTimeMillis() + 3600 * 1000);
+        GeneratePresignedUrlRequest generatePresignedUrlRequest = new GeneratePresignedUrlRequest(bucketName, objectKey)
+                .withMethod(HttpMethod.GET)
+                .withExpiration(expiration);
+        URL signedUrl = s3.generatePresignedUrl(generatePresignedUrlRequest);
+        return signedUrl.toString();
+
     }
 
     @Transactional(readOnly = true)
@@ -229,12 +284,6 @@ public class NaverObjectStorageService {
                 ));
     }
 
-    // 버킷 목록 조회 메서드 추가
-    public List<String> listAllBuckets() {
-        return s3.listBuckets().stream()
-                .map(bucket -> bucket.getName())
-                .collect(Collectors.toList());
-    }
 
     private void checkIfStorageEnabled(Member member) {
         if (!member.getIsStorageEnabled()) {
