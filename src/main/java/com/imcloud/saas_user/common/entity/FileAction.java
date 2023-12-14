@@ -2,10 +2,10 @@ package com.imcloud.saas_user.common.entity;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
-import com.imcloud.saas_user.common.entity.enums.FileActionType;
 import lombok.*;
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.Set;
 
 
 @Entity
@@ -30,10 +30,6 @@ public class FileAction extends Timestamped {
     @Column(nullable = false)
     private String userId;
 
-    /*@Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    private FileActionType actionType; // 액션 타입 (예: "DOWNLOADED", "DELETED", "PENDING_DEIDENTIFICATION")*/
-
     @Column
     private Boolean toBeDeidentified;
 
@@ -43,6 +39,9 @@ public class FileAction extends Timestamped {
     @Column
     private LocalDateTime isDeidentifiedAt;
 
+    /*@OneToMany(mappedBy = "fileAction", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private Set<FileActionHistory> fileActionHistorySet;*/
+
     public static FileAction create(String fileName, String objectKey,
                                     String userId) {
         return FileAction.builder()
@@ -51,7 +50,6 @@ public class FileAction extends Timestamped {
                 .objectKey(objectKey)
                 .toBeDeidentified(false)
                 .storedAt(LocalDateTime.now())
-               // .actionType(actionType)
                 .build();
     }
 }

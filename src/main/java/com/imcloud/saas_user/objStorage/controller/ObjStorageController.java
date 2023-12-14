@@ -4,8 +4,10 @@ import com.imcloud.saas_user.common.dto.ApiResponse;
 import com.imcloud.saas_user.common.dto.ErrorResponseDto;
 import com.imcloud.saas_user.common.dto.ErrorType;
 import com.imcloud.saas_user.common.entity.StorageLog;
+import com.imcloud.saas_user.common.entity.enums.FileActionType;
 import com.imcloud.saas_user.common.security.UserDetailsImpl;
 import com.imcloud.saas_user.fileAction.dto.FileActionDto;
+import com.imcloud.saas_user.fileAction.dto.FileActionHistoryDto;
 import com.imcloud.saas_user.objStorage.dto.StorageLogResponseDto;
 import com.imcloud.saas_user.objStorage.service.NaverObjectStorageService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -84,6 +86,23 @@ public class ObjStorageController {
                 userDetails, fileName, objectKey, toBeDeidentified, storedAtStart, storedAtEnd, isDeidentifiedAtStart, isDeidentifiedAtEnd, page, size);
 
         return ApiResponse.successOf(HttpStatus.OK, fileActions);
+    }
+
+    @GetMapping("/search-filesActionHistory")
+    @Operation(summary = "Search file action histories based on criteria")
+    public ApiResponse<Page<FileActionHistoryDto>> searchFileActionHistories(
+            @RequestParam(required = false) String fileName,
+            @RequestParam(required = false) String objectKey,
+            @RequestParam(required = false) FileActionType actionType,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime actionTimeStart,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime actionTimeEnd,
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size) {
+
+        Page<FileActionHistoryDto> fileActionHistories = storageService.searchFileActionHistories(
+                fileName, objectKey, actionType, actionTimeStart, actionTimeEnd, page, size);
+
+        return ApiResponse.successOf(HttpStatus.OK, fileActionHistories);
     }
 
     /*@GetMapping("/list")

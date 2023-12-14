@@ -15,12 +15,14 @@ import com.imcloud.saas_user.common.entity.enums.Product;
 import com.imcloud.saas_user.common.repository.*;
 import com.imcloud.saas_user.common.security.UserDetailsImpl;
 import com.imcloud.saas_user.fileAction.dto.FileActionDto;
+import com.imcloud.saas_user.fileAction.dto.FileActionHistoryDto;
 import com.imcloud.saas_user.objStorage.dto.StorageLogResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,7 +46,7 @@ public class NaverObjectStorageService {
     private final MemberRepository memberRepository;
     private final StorageLogRepository storageLogRepository;
     private final PaymentRepository paymentRepository;
-    private final SubscriptionRepository subscriptionRepository;
+    private final FileActionHistoryRepository fileActionHistoryRepository;
     private final FileActionRepository fileActionRepository;
 
 
@@ -101,9 +103,11 @@ public class NaverObjectStorageService {
         Long estimatedNetworkTraffic = (long) (file.getSize() * 1.10)/ 1024;
         StorageLog log = StorageLog.create(userId, fileName, estimatedNetworkTraffic, objectKey);
         FileAction fileAction = FileAction.create(fileName, objectKey, userId);
+        FileActionHistory fileActionHistory = FileActionHistory.create(fileAction, FileActionType.UPLOADED);
 
         fileActionRepository.save(fileAction);
         storageLogRepository.save(log);
+        fileActionHistoryRepository.save(fileActionHistory);
 
         processAdditionalCharge(member, estimatedNetworkTraffic / 100);
         return FileActionDto.of(fileAction);
@@ -118,12 +122,23 @@ public class NaverObjectStorageService {
         FileAction fileAction = fileActionRepository.findById(storageLogId)
                 .orElseThrow(() -> new EntityNotFoundException("StorageLog not found with id: " + storageLogId));
 
-        // 현재 값 토글
-        fileAction.setToBeDeidentified(!fileAction.getToBeDeidentified());
+
+        FileActionHistory fileActionHistory = FileActionHistory.create(fileAction, FileActionType.UPLOADED);
+
+        // 현재 toBeDeidentified 값 토글
+        boolean newToBeDeidentifiedValue = !fileAction.getToBeDeidentified();
+        fileAction.setToBeDeidentified(newToBeDeidentifiedValue);
+
+        // FileActionHistory의 FileActionType을 설정합니다.
+        if (newToBeDeidentifiedValue) {
+            fileActionHistory.setActionType(FileActionType.TOBE_DEIDENTIFICATION);
+        }
+
         fileActionRepository.save(fileAction);
+        fileActionHistoryRepository.save(fileActionHistory);
 
         // 변경된 값을 반환
-        return fileAction.getToBeDeidentified();
+        return newToBeDeidentifiedValue;
     }
 
     public boolean checkToBeDeidentified(UserDetailsImpl userDetails, Long storageLogId) {
@@ -154,7 +169,7 @@ public class NaverObjectStorageService {
                 .collect(Collectors.toList());
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true) // 트랜잭션을 읽기 전용으로 설정
     public Page<FileActionDto> searchFiles(UserDetailsImpl userDetails,
                                            String fileName,
                                            String objectKey,
@@ -165,18 +180,50 @@ public class NaverObjectStorageService {
                                            LocalDateTime isDeidentifiedAtEnd,
                                            Integer page,
                                            Integer size) {
+
+        // 사용자 정보를 확인하고, 존재하지 않으면 예외를 발생시킵니다.
         Member member = memberRepository.findByUserId(userDetails.getUser().getUserId())
                 .orElseThrow(() -> new EntityNotFoundException(ErrorMessage.WRONG_USERID.getMessage()));
 
-        // Check if storage is enabled for the user
+        // 사용자가 스토리지를 사용할 수 있는지 확인합니다.
         checkIfStorageEnabled(member);
 
-        Pageable pageable = PageRequest.of(page - 1, size);
+        // 페이지 요청 객체를 생성합니다. 페이지 번호는 0부터 시작하므로 1을 빼줍니다. 결과는 'id' 필드 기준으로 내림차순 정렬됩니다.
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by("id").descending());
+
+        // 동적 쿼리 조건을 생성합니다. 이 조건은 검색 필터링에 사용됩니다.
         Specification<FileAction> spec = FileActionSpecifications.withDynamicQuery(
                 toBeDeidentified, fileName, objectKey, storedAtStart, storedAtEnd, isDeidentifiedAtStart, isDeidentifiedAtEnd);
 
+        // 조건에 맞는 FileAction을 조회합니다. 결과는 페이지 형태로 반환됩니다.
         Page<FileAction> fileActionsPage = fileActionRepository.findAll(spec, pageable);
+
+        // 조회된 FileAction 엔티티를 FileActionDto로 변환하여 반환합니다.
         return fileActionsPage.map(FileActionDto::of);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<FileActionHistoryDto> searchFileActionHistories(
+            String fileName,
+            String objectKey,
+            FileActionType actionType,
+            LocalDateTime actionTimeStart,
+            LocalDateTime actionTimeEnd,
+            int page,
+            int size) {
+
+        // 페이지 요청 객체를 생성합니다. 페이지 번호는 0부터 시작하므로 1을 빼줍니다. 결과는 'id' 필드 기준으로 내림차순 정렬됩니다.
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by("id").descending());
+
+        Specification<FileActionHistory> spec = FileActionHistorySpecifications.createSpecification(
+                fileName,
+                objectKey,
+                actionType,
+                actionTimeStart,
+                actionTimeEnd);
+
+        Page<FileActionHistory> histories = fileActionHistoryRepository.findAll(spec, pageable); // 동적 쿼리를 사용하여 데이터를 조회합니다.
+        return histories.map(FileActionHistoryDto::of); // 조회된 데이터를 FileActionHistoryDto로 변환하여 반환합니다.
     }
 
 
@@ -196,7 +243,7 @@ public class NaverObjectStorageService {
         FileAction fileAction = fileActionRepository.findByObjectKey(objectKey).orElseThrow(
                 () -> new EntityNotFoundException(ErrorMessage.STORAGELOG_NOT_FOUND.getMessage())
         );
-
+        FileActionHistory fileActionHistory = FileActionHistory.create(fileAction, FileActionType.DELETED);
         fileActionRepository.delete(fileAction);
     }
 
@@ -231,13 +278,17 @@ public class NaverObjectStorageService {
             return signedUrl.toString();
         } else */
 
+        FileAction fileAction = fileActionRepository.findByObjectKey(objectKey).orElseThrow(
+                () -> new EntityNotFoundException(ErrorMessage.STORAGELOG_NOT_FOUND.getMessage())
+        );
+        FileActionHistory fileActionHistory = FileActionHistory.create(fileAction, FileActionType.DOWNLOADED);
+
         Date expiration = new Date(System.currentTimeMillis() + 3600 * 1000);
         GeneratePresignedUrlRequest generatePresignedUrlRequest = new GeneratePresignedUrlRequest(bucketName, objectKey)
                 .withMethod(HttpMethod.GET)
                 .withExpiration(expiration);
         URL signedUrl = s3.generatePresignedUrl(generatePresignedUrlRequest);
         return signedUrl.toString();
-
     }
 
     @Transactional(readOnly = true)
@@ -263,7 +314,6 @@ public class NaverObjectStorageService {
                 ));
 
     }
-
 
     @Transactional(readOnly = true)
     public Map<String, Long> getNetworkTrafficForEachLog(UserDetailsImpl userDetails) {
