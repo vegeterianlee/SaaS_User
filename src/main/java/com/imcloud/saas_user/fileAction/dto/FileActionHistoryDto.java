@@ -40,7 +40,7 @@ public class FileActionHistoryDto {
                 .objectKey(fileActionHistory.getObjectKey())
                 .actionType(fileActionHistory.getActionType())
                 .actionTime(fileActionHistory.getActionTime())
-                .fileId(fileActionHistory.getFileAction() != null ? fileActionHistory.getFileAction().getId() : null)
+                .fileId(fileActionHistory.getFileActionId())
                 .build();
     }
 }

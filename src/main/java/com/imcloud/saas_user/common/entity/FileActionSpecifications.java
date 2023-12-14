@@ -11,6 +11,7 @@ public class FileActionSpecifications {
 
     // withDynamicQuery 메소드는 동적으로 쿼리를 생성하기 위한 Specification을 반환합니다.
     public static Specification<FileAction> withDynamicQuery(Boolean toBeDeidentified,
+                                                             String userId,
                                                              String fileName,
                                                              String objectKey,
                                                              LocalDateTime storedAtStart,
@@ -19,6 +20,9 @@ public class FileActionSpecifications {
                                                              LocalDateTime isDeidentifiedAtEnd) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
+
+            // userId 조건을 강제로 추가합니다.
+            predicates.add(cb.equal(root.get("userId"), userId));
 
             // toBeDeidentified 값이 제공된 경우, 해당 조건으로 필터링합니다.
             if (toBeDeidentified != null) {

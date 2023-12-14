@@ -97,10 +97,12 @@ public class ObjStorageController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime actionTimeStart,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime actionTimeEnd,
             @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer size) {
+            @RequestParam(defaultValue = "10") Integer size,
+            @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails){
 
         Page<FileActionHistoryDto> fileActionHistories = storageService.searchFileActionHistories(
-                fileName, objectKey, actionType, actionTimeStart, actionTimeEnd, page, size);
+                userDetails, fileName, objectKey, actionType,
+                actionTimeStart, actionTimeEnd, page, size);
 
         return ApiResponse.successOf(HttpStatus.OK, fileActionHistories);
     }

@@ -22,6 +22,9 @@ public class FileActionHistory {
     private Long id;
 
     @Column
+    private String userId;
+
+    @Column
     private String fileName;
 
     @Column(nullable = false)
@@ -34,14 +37,16 @@ public class FileActionHistory {
     @Column
     private LocalDateTime actionTime;
 
-    @ManyToOne
-    private FileAction fileAction;
+    @Column
+    private Long fileActionId;
 
 
     // 정적 팩토리 메소드 추가
-    public static FileActionHistory create(FileAction fileAction, FileActionType actionType) {
+    public static FileActionHistory create(FileAction fileAction, FileActionType actionType,
+                                           String userId) {
         return FileActionHistory.builder()
-                .fileAction(fileAction)
+                .userId(userId)
+                .fileActionId(fileAction.getId())
                 .fileName(fileAction.getFileName())
                 .objectKey(fileAction.getObjectKey())
                 .actionType(actionType)
