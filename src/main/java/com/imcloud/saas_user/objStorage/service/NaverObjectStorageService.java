@@ -84,7 +84,7 @@ public class NaverObjectStorageService {
         String objectKey = "de-identification/original/" + userId + "/" + uniqueFileName;
 
         // If the member's product is ENTERPRISE, encode the data
-        if(member.getProduct() == Product.ENTERPRISE) {
+       /* if(member.getProduct() == Product.ENTERPRISE) {
             byte[] encodedBytes = Base64.getEncoder().encode(file.getBytes());
             InputStream encodedInputStream = new ByteArrayInputStream(encodedBytes);
             ObjectMetadata metadata = new ObjectMetadata();
@@ -92,12 +92,12 @@ public class NaverObjectStorageService {
             PutObjectRequest putRequest = new PutObjectRequest(bucketName, objectKey, encodedInputStream, metadata);
             s3.putObject(putRequest);
 
-        } else {
-            ObjectMetadata metadata = new ObjectMetadata();
-            metadata.setContentLength(file.getSize());
-            PutObjectRequest putRequest = new PutObjectRequest(bucketName, objectKey, file.getInputStream(), metadata);
-            s3.putObject(putRequest);
-        }
+        }*/
+
+        ObjectMetadata metadata = new ObjectMetadata();
+        metadata.setContentLength(file.getSize());
+        PutObjectRequest putRequest = new PutObjectRequest(bucketName, objectKey, file.getInputStream(), metadata);
+        s3.putObject(putRequest);
 
         // Create a StorageLog entry
         Long estimatedNetworkTraffic = (long) (file.getSize() * 1.10)/ 1024;
