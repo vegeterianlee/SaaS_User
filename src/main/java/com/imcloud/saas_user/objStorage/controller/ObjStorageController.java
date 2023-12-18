@@ -58,13 +58,13 @@ public class ObjStorageController {
         return ApiResponse.successOf(HttpStatus.OK, status);
     }
 
-    @GetMapping("/toggleToBeDeidentified")
+    @GetMapping("/toggleIsDeidentifiedTarget")
     @Operation(summary = "Toggle the deidentification status of a storage log")
     public ApiResponse<Boolean> toggleDeidentificationStatus(
             @RequestParam Long storageLogId,
             @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
-        boolean newStatus = storageService.toggleToBeDeidentified(userDetails, storageLogId);
+        boolean newStatus = storageService.toggleIsDeidentifiedTarget(userDetails, storageLogId);
         return ApiResponse.successOf(HttpStatus.OK, newStatus);
     }
 

@@ -126,7 +126,7 @@ public class NaverObjectStorageService {
     }
 
     @Transactional
-    public boolean toggleToBeDeidentified(UserDetailsImpl userDetails, Long storageLogId) {
+    public boolean toggleIsDeidentifiedTarget(UserDetailsImpl userDetails, Long storageLogId) {
         Member member = memberRepository.findByUserId(userDetails.getUser().getUserId()).orElseThrow(
                 () -> new EntityNotFoundException(ErrorMessage.WRONG_USERID.getMessage())
         );
@@ -140,20 +140,20 @@ public class NaverObjectStorageService {
 
         FileActionHistory fileActionHistory = FileActionHistory.create(fileAction, FileActionType.UPLOADED, member.getUserId());
 
-        // 현재 toBeDeidentified 값 토글
-        boolean newToBeDeidentifiedValue = !fileAction.getToBeDeidentified();
-        fileAction.setToBeDeidentified(newToBeDeidentifiedValue);
+        // 현재 IsDeidentifiedTarget 값 토글
+        boolean newIsDeidentifiedTarget = !fileAction.getIsDeidentifiedTarget();
+        fileAction.setIsDeidentifiedTarget(newIsDeidentifiedTarget);
 
         // FileActionHistory의 FileActionType을 설정합니다.
-        if (newToBeDeidentifiedValue) {
+        if (newIsDeidentifiedTarget) {
             fileActionHistory.setActionType(FileActionType.TOBE_DEIDENTIFICATION);
+            fileActionHistoryRepository.save(fileActionHistory);
         }
 
         fileActionRepository.save(fileAction);
-        fileActionHistoryRepository.save(fileActionHistory);
 
         // 변경된 값을 반환
-        return newToBeDeidentifiedValue;
+        return newIsDeidentifiedTarget;
     }
 
     public boolean checkToBeDeidentified(UserDetailsImpl userDetails, Long storageLogId) {

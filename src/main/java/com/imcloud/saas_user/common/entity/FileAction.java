@@ -31,6 +31,9 @@ public class FileAction extends Timestamped {
     private String userId;
 
     @Column
+    private Boolean isDeidentifiedTarget;
+
+    @Column
     private Boolean toBeDeidentified;
 
     @Column(nullable = false)
@@ -49,6 +52,7 @@ public class FileAction extends Timestamped {
                 .userId(userId)
                 .objectKey(objectKey)
                 .toBeDeidentified(false)
+                .isDeidentifiedTarget(false)
                 .storedAt(LocalDateTime.now())
                 .build();
     }

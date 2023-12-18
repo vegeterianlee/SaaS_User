@@ -24,8 +24,11 @@ public class FileActionDto {
     @Schema(type = "string", example = "de-identification/folder/user123/document.pdf", description = "S3 버킷 내 객체 키")
     private String objectKey;
 
-    @Schema(type = "boolean", example = "true", description = "비식별 처리 대상 여부")
+    @Schema(type = "boolean", example = "true", description = "비식별 처리된 여부")
     private Boolean toBeDeidentified;
+
+    @Schema(type = "boolean", example = "true", description = "비식별 처리 대상 여부")
+    private Boolean isDeidentifiedTarget;
 
     @Schema(type = "string", example = "2023-01-01T12:00:00", description = "파일 저장 시간")
     private LocalDateTime storedAt;
@@ -41,6 +44,7 @@ public class FileActionDto {
                 .fileName(fileAction.getFileName())
                 .objectKey(fileAction.getObjectKey())
                 .toBeDeidentified(fileAction.getToBeDeidentified())
+                .isDeidentifiedTarget(fileAction.getIsDeidentifiedTarget())
                 .storedAt(fileAction.getStoredAt())
                 .isDeidentifiedAt(fileAction.getIsDeidentifiedAt())
                 .build();
