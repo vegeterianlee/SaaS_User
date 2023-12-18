@@ -78,9 +78,21 @@ public class NaverObjectStorageService {
         );
         // Check if storage is enabled for the user
         checkIfStorageEnabled(member);
-
         String userId = member.getUserId();
-        String uniqueFileName= UUID.randomUUID().toString() + "_" + fileName;
+
+        // 실제 업로드된 파일의 원본 파일 이름을 가져옵니다.
+        String originalFileName = file.getOriginalFilename(); // 원본 파일 이름을 가져옵니다.
+        String fileExtension = ""; // 파일 확장자를 저장할 변수 초기화
+
+        // 원본 파일 이름에서 확장자를 추출합니다.
+        if (originalFileName != null) {
+            int extensionIndex = originalFileName.lastIndexOf(".");
+            if (extensionIndex >= 0) {
+                fileExtension = originalFileName.substring(extensionIndex); // 확장자 추출 (점 포함)
+            }
+        }
+
+        String uniqueFileName = UUID.randomUUID().toString() + "_" + fileName + fileExtension; // 확장자를 포함하여 고유한 파일 이름 생성
         String objectKey = "de-identification/original/" + userId + "/" + uniqueFileName;
 
         // If the member's product is ENTERPRISE, encode the data
@@ -118,6 +130,9 @@ public class NaverObjectStorageService {
         Member member = memberRepository.findByUserId(userDetails.getUser().getUserId()).orElseThrow(
                 () -> new EntityNotFoundException(ErrorMessage.WRONG_USERID.getMessage())
         );
+
+        // Check if storage is enabled for the user
+        checkIfStorageEnabled(member);
 
         FileAction fileAction = fileActionRepository.findById(storageLogId)
                 .orElseThrow(() -> new EntityNotFoundException("StorageLog not found with id: " + storageLogId));
@@ -218,6 +233,8 @@ public class NaverObjectStorageService {
         Member member = memberRepository.findByUserId(userDetails.getUser().getUserId())
                 .orElseThrow(() -> new EntityNotFoundException(ErrorMessage.WRONG_USERID.getMessage()));
 
+        // Check if storage is enabled for the user
+        checkIfStorageEnabled(member);
 
         // 페이지 요청 객체를 생성합니다. 페이지 번호는 0부터 시작하므로 1을 빼줍니다. 결과는 'id' 필드 기준으로 내림차순 정렬됩니다.
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by("id").descending());
