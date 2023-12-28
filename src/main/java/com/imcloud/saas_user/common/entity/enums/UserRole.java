@@ -12,4 +12,13 @@ public enum UserRole {
 
     @JsonValue
     private final String value;
+
+    public static UserRole fromString(String roleStr) {
+        for (UserRole role : UserRole.values()) {
+            if (role.getValue().equalsIgnoreCase(roleStr)) {
+                return role;
+            }
+        }
+        throw new IllegalArgumentException("No enum constant for role string: " + roleStr);
+    }
 }

@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +40,7 @@ public class ObjStorageController {
     public ApiResponse<?> uploadFile(
             @RequestParam String fileName,
             @RequestParam("file") MultipartFile file,
-            @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails) throws IOException {
+            @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails) throws IOException, GeneralSecurityException {
         /*if (!folder.equals("original") && !folder.equals("processed")) {
             ErrorResponseDto errorResponseDto = ErrorResponseDto.of(ErrorType.ILLEGAL_ARGUMENT_EXCEPTION, "Invalid folder name");
             return ApiResponse.failOf(HttpStatus.BAD_REQUEST, errorResponseDto);
@@ -56,6 +57,29 @@ public class ObjStorageController {
 
         boolean status = storageService.checkToBeDeidentified(userDetails, storageLogId);
         return ApiResponse.successOf(HttpStatus.OK, status);
+    }
+
+    @GetMapping("/file-actions/deidentified-target")
+    @Operation(summary = "Find File Actions with Deidentified Target")
+    public ApiResponse<Page<FileActionDto>> findFileActionsWithDeidentifiedTarget(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails) {
+
+        Page<FileActionDto> fileActions = storageService.findFileActionsWithDeidentifiedTarget(userDetails, page, size);
+        return ApiResponse.successOf(HttpStatus.OK, fileActions);
+    }
+
+    @GetMapping("/file-actions/recent")
+    @Operation(summary = "Get Recent File Actions",
+            description = "Retrieves a page of FileAction objects for the current user that were stored within the last 7 days.")
+    public ApiResponse<Page<FileActionDto>> getRecentFileActions(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+
+        Page<FileActionDto> fileActions = storageService.findRecentFileActions(userDetails, page, size);
+        return ApiResponse.successOf(HttpStatus.OK, fileActions);
     }
 
     @GetMapping("/toggleIsDeidentifiedTarget")
@@ -135,7 +159,7 @@ public class ObjStorageController {
     @GetMapping("/download")
     @Operation(summary = "Get a signed URL for downloading a file (1 hour)")
     public ApiResponse<?> getSignedUrl(@RequestParam String objectKey,
-                                       @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails) throws IOException {
+                                       @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails) throws IOException, GeneralSecurityException {
         /*if (!folder.equals("original") && !folder.equals("processed")) {
             ErrorResponseDto errorResponseDto = ErrorResponseDto.of(ErrorType.ILLEGAL_ARGUMENT_EXCEPTION, "Invalid folder name");
             return ApiResponse.failOf(HttpStatus.BAD_REQUEST, errorResponseDto);

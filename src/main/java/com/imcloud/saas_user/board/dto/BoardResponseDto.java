@@ -35,6 +35,9 @@ public class BoardResponseDto {
 
     private Long viewCount;*/
 
+    @Schema(example = "작성자 아이디")
+    private String userId;
+
     @Schema(example = "작성자 닉네임")
     private String username;
 
@@ -69,12 +72,12 @@ public class BoardResponseDto {
                 .id(board.getId())
                 .title(board.getTitle())
                 .hasAdminComment(board.getHasAdminComment())
+                .userId(board.getMember().getUserId())
                 .username(board.getMember().getUsername())
                 .content(board.getContent())
                 .viewCount(board.getViewCount())
                 .createdAt(board.getCreatedAt())
                 .modifiedAt(board.getModifiedAt());
-//                .viewCount(board.getViewCount())
 //               .wishCount(ObjectUtils.defaultIfNull(board.getWishes(), new HashSet<>()).size());
         return builder.build();
     }

@@ -1,5 +1,8 @@
 package com.imcloud.saas_user.objStorage.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.amazonaws.AmazonServiceException;
 import com.amazonaws.HttpMethod;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
@@ -7,6 +10,7 @@ import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.*;
+import com.amazonaws.util.IOUtils;
 import com.imcloud.saas_user.common.dto.ErrorMessage;
 import com.imcloud.saas_user.common.entity.*;
 import com.imcloud.saas_user.common.entity.enums.FileActionType;
@@ -29,11 +33,20 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.PostConstruct;
+import javax.crypto.*;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 import javax.persistence.EntityNotFoundException;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.security.GeneralSecurityException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -49,6 +62,16 @@ public class NaverObjectStorageService {
     private final FileActionHistoryRepository fileActionHistoryRepository;
     private final FileActionRepository fileActionRepository;
 
+    // 암호화 저장
+    private static final Charset UTF_8 = StandardCharsets.UTF_8;
+    private static final String AES_CBC_PKCS5_PADDING = "AES/CBC/PKCS5Padding";
+    private static final String AES = "AES";
+    private static final int AES_BLOCK_SIZE = 16;
+    private static final Logger logger = LoggerFactory.getLogger(NaverObjectStorageService.class);
+
+
+    @Value("${aes.encryption.key}")
+    private String keyString;
 
     @Value("${cloud.aws.credentials.access-key}")
     private String accessKey;
@@ -63,16 +86,104 @@ public class NaverObjectStorageService {
     @Value("${cloud.aws.region.static}")
     private String region;
     private AmazonS3 s3;
+    private SecretKey aesSecretKey;
 
     @PostConstruct
-    public void init() {
+    public void init() throws NoSuchAlgorithmException {
         this.s3 = AmazonS3ClientBuilder.standard()
                 .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(endpointUrl, region))
                 .withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials(accessKey, secretKey)))
                 .build();
+
+        MessageDigest sha = MessageDigest.getInstance("SHA-256");
+        byte[] key = sha.digest(keyString.getBytes(StandardCharsets.UTF_8));
+        this.aesSecretKey = new SecretKeySpec(key, "AES");
     }
+
+    private byte[] applyCustomPadding(byte[] dataBytes) {
+        // AES 블록 크기에서 데이터 길이를 나눈 나머지를 뺍니다. 이는 필요한 패딩 길이를 계산합니다.
+        int paddingLength = AES_BLOCK_SIZE - (dataBytes.length % AES_BLOCK_SIZE); // 예: 16 - (5 % 16) = 11
+
+        // 새로운 바이트 배열을 만들어서, 원본 데이터와 패딩을 포함할 충분한 공간을 확보합니다.
+        byte[] paddedData = new byte[dataBytes.length + paddingLength]; // 예: new byte[5 + 11] = new byte[16]
+
+        // 원본 데이터를 새 배열의 시작 부분에 복사합니다.
+        System.arraycopy(dataBytes, 0, paddedData, 0, dataBytes.length); // 예: 'Hello'를 paddedData[0]부터 paddedData[4]까지 복사
+
+        // 패딩 바이트를 계산합니다. 패딩 길이를 바이트로 변환합니다.
+        byte paddingByte = (byte) (paddingLength & 0xFF); // 예: (11 & 0xFF) = 11
+
+        // 계산된 패딩 바이트로 나머지 배열을 채웁니다. 이는 원본 데이터 끝에서부터 배열 끝까지입니다.
+        Arrays.fill(paddedData, dataBytes.length, paddedData.length, paddingByte);
+        // 예: paddedData[5]부터 paddedData[15]까지 각각의 값을 11로 설정
+
+        // 패딩이 적용된 배열을 반환합니다.
+        return paddedData; // 예: ['H', 'e', 'l', 'l', 'o', 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11]
+    }
+
+    /*public String encodeData(byte[] dataBytes) throws GeneralSecurityException {
+        byte[] paddedData = applyCustomPadding(dataBytes);
+
+        Cipher cipher = Cipher.getInstance("AES/CBC/NoPadding");
+        cipher.init(Cipher.ENCRYPT_MODE, aesSecretKey, new IvParameterSpec(new byte[16]));
+        byte[] encrypted = cipher.doFinal(paddedData);
+
+        return Base64.getEncoder().encodeToString(encrypted);
+    }*/
+
+    public byte[] decodeData(byte[] encodedData) throws GeneralSecurityException {
+        // Base64 디코딩
+        byte[] decodedData = Base64.getDecoder().decode(encodedData);
+
+        // AES/CBC/NoPadding 복호화
+        Cipher cipher = Cipher.getInstance("AES/CBC/NoPadding");
+        cipher.init(Cipher.DECRYPT_MODE, aesSecretKey, new IvParameterSpec(new byte[16]));
+        byte[] decrypted = cipher.doFinal(decodedData);
+
+        // Flask 스타일의 패딩 제거 로직
+        int padValue = decrypted[decrypted.length - 1];
+        if (padValue < 1 || padValue > 16) {
+            throw new GeneralSecurityException("Invalid padding length");
+        }
+
+        // 패딩 제거
+        int unpaddedLength = decrypted.length - padValue;
+        byte[] unpaddedData = new byte[unpaddedLength];
+        System.arraycopy(decrypted, 0, unpaddedData, 0, unpaddedLength);
+
+        return unpaddedData;
+    }
+
+    private InputStream encryptStream(InputStream inputStream) throws GeneralSecurityException, IOException {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        byte[] buffer = new byte[1024];
+        int bytesRead;
+        while ((bytesRead = inputStream.read(buffer)) != -1) {
+            byteArrayOutputStream.write(buffer, 0, bytesRead);
+        }
+
+        // 사용자 정의 패딩 적용
+        byte[] data = byteArrayOutputStream.toByteArray();
+        byte[] paddedData = applyCustomPadding(data);
+
+        // AES 암호화
+        Cipher cipher = Cipher.getInstance("AES/CBC/NoPadding");
+        cipher.init(Cipher.ENCRYPT_MODE, aesSecretKey, new IvParameterSpec(new byte[16])); // 동일한 IV 사용
+        byte[] encryptedData;
+        try {
+            encryptedData = cipher.doFinal(paddedData); // 암호화
+        } catch (IllegalBlockSizeException | BadPaddingException e) {
+            // 로그 기록
+            logger.error("암호화 오류: " + e.getMessage(), e);
+            throw e;
+        }
+
+        // Base64 인코딩
+        return new ByteArrayInputStream(Base64.getEncoder().encode(encryptedData));
+    }
+
     @Transactional
-    public FileActionDto handleUpload(MultipartFile file, String fileName, UserDetailsImpl userDetails) throws IOException {
+    public FileActionDto handleUpload(MultipartFile file, String fileName, UserDetailsImpl userDetails) throws IOException, GeneralSecurityException {
         Member member = memberRepository.findByUserId(userDetails.getUser().getUserId()).orElseThrow(
                 () -> new EntityNotFoundException(ErrorMessage.WRONG_USERID.getMessage())
         );
@@ -95,21 +206,21 @@ public class NaverObjectStorageService {
         String uniqueFileName = UUID.randomUUID().toString() + "_" + fileName + fileExtension; // 확장자를 포함하여 고유한 파일 이름 생성
         String objectKey = "de-identification/original/" + userId + "/" + uniqueFileName;
 
-        // If the member's product is ENTERPRISE, encode the data
-       /* if(member.getProduct() == Product.ENTERPRISE) {
-            byte[] encodedBytes = Base64.getEncoder().encode(file.getBytes());
-            InputStream encodedInputStream = new ByteArrayInputStream(encodedBytes);
+        try (InputStream fileInputStream = file.getInputStream()) {
+            // 암호화된 스트림 생성
+            InputStream encryptedStream = encryptStream(fileInputStream);
+
+            // S3에 스트리밍 업로드
             ObjectMetadata metadata = new ObjectMetadata();
-            metadata.setContentLength(encodedBytes.length);
-            PutObjectRequest putRequest = new PutObjectRequest(bucketName, objectKey, encodedInputStream, metadata);
+            metadata.setContentLength(encryptedStream.available()); // 적절한 길이 설정 필요
+            PutObjectRequest putRequest = new PutObjectRequest(bucketName, objectKey, encryptedStream, metadata);
             s3.putObject(putRequest);
 
-        }*/
-
-        ObjectMetadata metadata = new ObjectMetadata();
-        metadata.setContentLength(file.getSize());
-        PutObjectRequest putRequest = new PutObjectRequest(bucketName, objectKey, file.getInputStream(), metadata);
-        s3.putObject(putRequest);
+        } catch (GeneralSecurityException e) {
+            throw new IOException("암호화 과정에서 오류가 발생했습니다.", e);
+        } catch (AmazonServiceException e) {
+            throw new IOException("S3 업로드 중 오류가 발생했습니다.", e);
+        }
 
         // Create a StorageLog entry
         Long estimatedNetworkTraffic = (long) (file.getSize() * 1.10)/ 1024;
@@ -123,6 +234,42 @@ public class NaverObjectStorageService {
 
         processAdditionalCharge(member, estimatedNetworkTraffic / 100);
         return FileActionDto.of(fileAction);
+    }
+
+    @Transactional(readOnly = true)
+    public String getSignedUrl(String objectKey, UserDetailsImpl userDetails) throws IOException, GeneralSecurityException {
+        Member member = memberRepository.findByUserId(userDetails.getUser().getUserId()).orElseThrow(
+                () -> new EntityNotFoundException(ErrorMessage.WRONG_USERID.getMessage())
+        );
+        checkIfStorageEnabled(member);
+
+        // S3에서 암호화된 파일 다운로드
+        S3Object s3Object = s3.getObject(bucketName, objectKey);
+        InputStream encryptedDataStream = s3Object.getObjectContent();
+        byte[] encryptedData = IOUtils.toByteArray(encryptedDataStream);
+
+        // 복호화
+        byte[] decryptedData = decodeData(encryptedData);
+
+        // objectKey에서 uniqueFileName 추출
+        String uniqueFileName = objectKey.substring(objectKey.lastIndexOf("/") + 1);
+
+        // 복호화된 데이터를 S3에 임시 저장
+        String tempObjectKey = "de-identification/temp/"+ member.getUserId() + "/"  + uniqueFileName;
+        ObjectMetadata metadata = new ObjectMetadata();
+        metadata.setContentLength(decryptedData.length);
+        s3.putObject(new PutObjectRequest(bucketName, tempObjectKey, new ByteArrayInputStream(decryptedData), metadata));
+
+        // 복호화된 파일에 대한 서명된 URL 생성
+        GeneratePresignedUrlRequest urlRequest = new GeneratePresignedUrlRequest(bucketName, tempObjectKey)
+                .withMethod(HttpMethod.GET)
+                .withExpiration(new Date(System.currentTimeMillis() + 3600 * 1000));
+        URL signedUrl = s3.generatePresignedUrl(urlRequest);
+
+        // 임시 파일 삭제 (옵션: 지연 삭제를 위해 별도의 삭제 로직 구현 필요)
+//        s3.deleteObject(bucketName, tempObjectKey);
+
+        return signedUrl.toString();
     }
 
     @Transactional
@@ -182,6 +329,43 @@ public class NaverObjectStorageService {
                 .map(S3ObjectSummary::getKey)
                 .filter(key -> key.startsWith(prefix))
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public Page<FileActionDto> findFileActionsWithDeidentifiedTarget(UserDetailsImpl userDetails, Integer page, Integer size) {
+        String userId = userDetails.getUser().getUserId();
+
+        // Ensure storage is enabled for the user
+        checkIfStorageEnabled(memberRepository.findByUserId(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found")));
+
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by("id").descending());
+
+        // find FileActions where isDeidentifiedTarget is true
+        Page<FileAction> fileActionsPage = fileActionRepository
+                .findByUserIdAndIsDeidentifiedTarget(userId, true, pageable);
+
+        return fileActionsPage.map(FileActionDto::of);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<FileActionDto> findRecentFileActions(UserDetailsImpl userDetails, Integer page, Integer size) {
+        String userId = userDetails.getUser().getUserId();
+
+        // Ensure storage is enabled for the user
+        checkIfStorageEnabled(memberRepository.findByUserId(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found")));
+
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by("id").descending());
+
+        // Calculate the date 7 days ago
+        LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
+
+        // find FileActions for the userId stored within the last 7 days
+        Page<FileAction> fileActionsPage = fileActionRepository
+                .findByUserIdAndRecent(userId, sevenDaysAgo, pageable);
+
+        return fileActionsPage.map(FileActionDto::of);
     }
 
     @Transactional(readOnly = true) // 트랜잭션을 읽기 전용으로 설정
@@ -272,50 +456,6 @@ public class NaverObjectStorageService {
         // Delete the object from S3 bucket
         s3.deleteObject(bucketName, objectKey);
         fileActionRepository.delete(fileAction);
-    }
-
-    @Transactional(readOnly = true)
-    public String getSignedUrl(String objectKey, UserDetailsImpl userDetails) throws IOException {
-        Member member = memberRepository.findByUserId(userDetails.getUser().getUserId()).orElseThrow(
-                () -> new EntityNotFoundException(ErrorMessage.WRONG_USERID.getMessage())
-        );
-
-        // Check if storage is enabled for the user
-        checkIfStorageEnabled(member);
-
-        // If the member's product is ENTERPRISE, decode the data
-        /*if (member.getProduct() == Product.ENTERPRISE) {
-            S3Object s3Object = s3.getObject(bucketName, objectKey);
-            InputStream objectData = s3Object.getObjectContent();
-            byte[] bytes = IOUtils.toByteArray(objectData);
-            byte[] decodedBytes = Base64.getDecoder().decode(bytes);
-            InputStream decodedInputStream = new ByteArrayInputStream(decodedBytes);
-
-            String decodedObjectKey = "decoded/" + objectKey;
-            ObjectMetadata metadata = new ObjectMetadata();
-            metadata.setContentLength(decodedBytes.length);
-            s3.putObject(bucketName, decodedObjectKey, decodedInputStream, metadata);
-
-            // Generate signed URL for decoded object
-            Date expiration = new Date(System.currentTimeMillis() + 3600 * 1000);
-            GeneratePresignedUrlRequest generatePresignedUrlRequest = new GeneratePresignedUrlRequest(bucketName, decodedObjectKey)
-                    .withMethod(HttpMethod.GET)
-                    .withExpiration(expiration);
-            URL signedUrl = s3.generatePresignedUrl(generatePresignedUrlRequest);
-            return signedUrl.toString();
-        } else */
-
-        FileAction fileAction = fileActionRepository.findByObjectKey(objectKey).orElseThrow(
-                () -> new EntityNotFoundException(ErrorMessage.STORAGELOG_NOT_FOUND.getMessage())
-        );
-        FileActionHistory fileActionHistory = FileActionHistory.create(fileAction, FileActionType.DOWNLOADED, member.getUserId());
-
-        Date expiration = new Date(System.currentTimeMillis() + 3600 * 1000);
-        GeneratePresignedUrlRequest generatePresignedUrlRequest = new GeneratePresignedUrlRequest(bucketName, objectKey)
-                .withMethod(HttpMethod.GET)
-                .withExpiration(expiration);
-        URL signedUrl = s3.generatePresignedUrl(generatePresignedUrlRequest);
-        return signedUrl.toString();
     }
 
     @Transactional(readOnly = true)
