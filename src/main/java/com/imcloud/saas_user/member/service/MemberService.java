@@ -36,6 +36,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
+import java.util.Random;
+
 
 @Service
 @RequiredArgsConstructor
@@ -43,12 +49,17 @@ public class MemberService {
 
     @Value("${ADMIN_TOKEN}")
     private String adminTokenValue;
+
+    @Value("${EMAIL_USERNAME}")
+    private String myEmail;
+
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
 //    private final UserEventProducer userEventProducer;
     private final MemberRepository memberRepository;
     private final SubscriptionRepository subscriptionRepository;
     private final UserSessionRepository userSessionRepository;
+    private final JavaMailSender mailSender;
 
    /* private final WebClient.Builder webClientBuilder;
     private  WebClient paymentClient;
@@ -165,6 +176,14 @@ public class MemberService {
         return memberRepository.findByUserId(userId).isPresent();
     }
 
+    public Product checkProduct(UserDetailsImpl userDetails) {
+        // 사용자 확인
+        Member member = memberRepository.findByUserId(userDetails.getUser().getUserId())
+                .orElseThrow(() -> new EntityNotFoundException(ErrorMessage.WRONG_USERID.getMessage()));
+
+        return member.getProduct();
+    }
+
 
     public ProfileResponseDto getUserByToken(UserDetailsImpl userDetails) {
         // 사용자 확인
@@ -188,6 +207,60 @@ public class MemberService {
 
         // 변경된 멤버 저장
         memberRepository.save(member);
+    }
+
+    @Transactional
+    public void resetPasswordAndSendEmail(String userId) {
+        Member member = memberRepository.findByUserId(userId)
+                .orElseThrow(() -> new EntityNotFoundException(ErrorMessage.MEMBER_NOT_FOUND.getMessage()));
+
+        String newPassword = generateRandomPassword();
+        String encodedPassword = passwordEncoder.encode(newPassword);
+        member.setPassword(encodedPassword);
+        memberRepository.save(member);
+
+        sendPasswordResetEmail(member.getEmail(), newPassword);
+    }
+
+    public String generateRandomPassword() {
+        // 숫자, 문자, 특수문자를 포함하는 문자열 정의
+        String upperCaseLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        String lowerCaseLetters = upperCaseLetters.toLowerCase();
+        String numbers = "0123456789";
+        String specialCharacters = "$@$!%*#?&";
+        String combinedChars = upperCaseLetters + lowerCaseLetters + numbers + specialCharacters;
+
+        Random random = new Random();
+        StringBuilder sb = new StringBuilder(8);
+
+        // 각 카테고리에서 최소 하나의 문자를 무작위로 선택
+        sb.append(upperCaseLetters.charAt(random.nextInt(upperCaseLetters.length())));
+        sb.append(lowerCaseLetters.charAt(random.nextInt(lowerCaseLetters.length())));
+        sb.append(numbers.charAt(random.nextInt(numbers.length())));
+        sb.append(specialCharacters.charAt(random.nextInt(specialCharacters.length())));
+
+        // 나머지 문자를 combinedChars에서 무작위로 선택
+        for (int i = 4; i < 8; i++) {
+            sb.append(combinedChars.charAt(random.nextInt(combinedChars.length())));
+        }
+
+        return sb.toString();
+    }
+
+    private void sendPasswordResetEmail(String email, String newPassword) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true);
+
+            helper.setFrom(myEmail);
+            helper.setTo(email);
+            helper.setSubject("비밀번호가 초기화 되었습니다");
+            helper.setText("임시 비밀번호는 다음과 같습니다: " + newPassword);
+
+            mailSender.send(message);
+        } catch (MessagingException e) {
+            throw new RuntimeException("이메일 전송에 실패하였습니다.", e);
+        }
     }
 
     @Transactional
@@ -282,12 +355,17 @@ public class MemberService {
                 () -> new EntityNotFoundException(ErrorMessage.WRONG_USERID.getMessage())
         );
 
-        // 구독하고 있던 제품은 inactive로 바꾸기
-        Subscription subscription = subscriptionRepository.findByUserIdAndIsActive(member.getUserId(), true).orElseThrow(
-                () -> new EntityNotFoundException(ErrorMessage.SUBSCRIPTION_NOT_FOUND.getMessage())
-        );
-        subscription.setIsActive(false);
-        subscription.setEndDateNow();
+        // 구독 정보 조회
+        Optional<Subscription> optionalSubscription = subscriptionRepository.findByUserIdAndIsActive(member.getUserId(), true);
+
+        // 구독 정보가 존재하면 inactive로 바꾸기
+        if (optionalSubscription.isPresent()) {
+            Subscription subscription = optionalSubscription.get();
+            subscription.setIsActive(false);
+            subscription.setEndDateNow();
+        }
+
+        // 회원 삭제
         memberRepository.delete(member);
     }
 
