@@ -254,7 +254,7 @@ public class MemberService {
 
             helper.setFrom(myEmail);
             helper.setTo(email);
-            helper.setSubject("비밀번호가 초기화 되었습니다");
+            helper.setSubject("SDGUARD 서비스의 비밀번호가 초기화 되었습니다");
             helper.setText("임시 비밀번호는 다음과 같습니다: " + newPassword);
 
             mailSender.send(message);
