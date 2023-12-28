@@ -249,7 +249,11 @@ public class MemberService {
 
     private void sendPasswordResetEmail(String email, String newPassword) {
         try {
+            //JavaMailSender (spring에서 제공하는 이메일 전송 인터페이스)
+            //JavaMailSender 객체로 이메일 전송
             MimeMessage message = mailSender.createMimeMessage();
+
+            //MimeMessage 객체를 생성하고 MimeMessageHelper를 통해 이메일의 발신자, 수신자, 제목, 본문을 설정하여 세팅
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
             helper.setFrom(myEmail);
