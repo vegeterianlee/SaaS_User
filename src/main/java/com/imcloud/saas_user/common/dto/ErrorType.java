@@ -10,7 +10,9 @@ public enum ErrorType {
     BAD_CREDENTIALS_EXCEPTION("user's password is wrong"),
     ILLEGAL_ARGUMENT_EXCEPTION("wrong argument error"),
     ACCESS_DENIED_EXCEPTION("don't have authority to do so"),
-    AUTHENTICATION_EXCEPTION("authentication has failed");
+    AUTHENTICATION_EXCEPTION("authentication has failed"),
+    SQL_EXCEPTION("SQL ERROR"),
+    URI_SYNTAX_EXCEPTION("URI_SYNTAX error");
 
     String description;
 
