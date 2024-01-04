@@ -284,8 +284,14 @@ public class NaverObjectStorageService {
         S3Object s3Object = s3.getObject(bucketName, objectKey);
         InputStream encryptedDataStream = s3Object.getObjectContent();
 
-        // 복호화된 스트림을 CSV 형식의 문자열로 변환
-        String csvString = convertToCSV(encryptedDataStream); // 변경된 메서드 호출 방식
+        // 전체 암호화된 데이터를 메모리에 로드
+        byte[] encryptedData = IOUtils.toByteArray(encryptedDataStream);
+
+        // 전체 데이터를 한 번에 복호화
+        byte[] decryptedData = decodeData(encryptedData);
+
+        // 복호화된 데이터를 CSV 형식의 문자열로 변환
+        String csvString = convertToCSV(new ByteArrayInputStream(decryptedData));
         return csvString;
     }
 
