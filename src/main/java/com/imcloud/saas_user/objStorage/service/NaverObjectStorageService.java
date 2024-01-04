@@ -1,5 +1,9 @@
 package com.imcloud.saas_user.objStorage.service;
 
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVPrinter;
+import org.apache.commons.csv.CSVRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.amazonaws.AmazonServiceException;
@@ -37,10 +41,7 @@ import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.persistence.EntityNotFoundException;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -271,6 +272,42 @@ public class NaverObjectStorageService {
 
         return signedUrl.toString();
     }
+
+    @Transactional(readOnly = true)
+    public String getDownloadByString(String objectKey, UserDetailsImpl userDetails) throws IOException, GeneralSecurityException {
+        Member member = memberRepository.findByUserId(userDetails.getUser().getUserId()).orElseThrow(
+                () -> new EntityNotFoundException(ErrorMessage.WRONG_USERID.getMessage())
+        );
+        checkIfStorageEnabled(member);
+
+        // S3에서 암호화된 파일 다운로드 및 복호화
+        S3Object s3Object = s3.getObject(bucketName, objectKey);
+        InputStream encryptedDataStream = s3Object.getObjectContent();
+
+        // 복호화된 스트림을 CSV 형식의 문자열로 변환
+        String csvString = convertToCSV(encryptedDataStream); // 변경된 메서드 호출 방식
+        return csvString;
+    }
+
+    private String convertToCSV(InputStream inputStream) throws IOException {
+        Charset euckrCharset = Charset.forName("EUC-KR");
+        Reader reader = new BufferedReader(new InputStreamReader(inputStream, euckrCharset));
+        StringWriter writer = new StringWriter();
+
+        try (CSVParser parser = new CSVParser(reader, CSVFormat.DEFAULT.withFirstRecordAsHeader())) {
+            // 첫 번째 레코드(헤더)를 추출하고 작성
+            String header = parser.getHeaderMap().keySet().stream()
+                    .collect(Collectors.joining(","));
+            writer.append(header).append("\n");
+
+            // 각 레코드를 CSV 형식으로 변환하여 작성
+            for (CSVRecord record : parser) {
+                writer.append(String.join(",", record)).append("\n");
+            }
+        }
+        return writer.toString();
+    }
+
 
     @Transactional
     public boolean toggleIsDeidentifiedTarget(UserDetailsImpl userDetails, Long storageLogId) {

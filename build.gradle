@@ -73,6 +73,7 @@ dependencies {
 
     // Add Apache Commons CSV library
     implementation 'org.apache.commons:commons-csv:1.8'
+    implementation 'org.apache.tika:tika-core:1.27'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'

@@ -12,6 +12,7 @@ public enum ErrorType {
     ACCESS_DENIED_EXCEPTION("don't have authority to do so"),
     AUTHENTICATION_EXCEPTION("authentication has failed"),
     SQL_EXCEPTION("SQL ERROR"),
+    IO_EXCEPTION("IOException error"),
     URI_SYNTAX_EXCEPTION("URI_SYNTAX error");
 
     String description;
