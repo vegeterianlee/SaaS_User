@@ -301,14 +301,17 @@ public class NaverObjectStorageService {
         StringWriter writer = new StringWriter();
 
         try (CSVParser parser = new CSVParser(reader, CSVFormat.DEFAULT.withFirstRecordAsHeader())) {
-            // 첫 번째 레코드(헤더)를 추출하고 작성
             String header = parser.getHeaderMap().keySet().stream()
                     .collect(Collectors.joining(","));
             writer.append(header).append("\n");
 
-            // 각 레코드를 CSV 형식으로 변환하여 작성
+            int rowCount = 0;
             for (CSVRecord record : parser) {
+                if (rowCount >= 500) {
+                    break; // 500개 행 처리 후 종료
+                }
                 writer.append(String.join(",", record)).append("\n");
+                rowCount++;
             }
         }
         return writer.toString();
