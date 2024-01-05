@@ -141,19 +141,18 @@ public class DatabaseConnectionService {
 
 
     @Transactional
-    public JdbcMetaDto updateJdbcMeta (UserDetailsImpl userDetails, String jdbcUrl, String table) {
+    public JdbcMetaDto updateJdbcMeta (UserDetailsImpl userDetails, Long id, String jdbcUrl, String table) {
         Member member = memberRepository.findByUserId(userDetails.getUser().getUserId()).orElseThrow(
                 () -> new EntityNotFoundException(ErrorMessage.MEMBER_NOT_FOUND.getMessage())
         );
 
         // 저장된 JdbcMeta 객체를 찾습니다.
-        JdbcMeta jdbcMeta = jdbcMetaRepository.findByUserIdAndServerUrlAndTableName(member.getUserId(), jdbcUrl, table)
+        JdbcMeta jdbcMeta = jdbcMetaRepository.findByUserIdAndId(member.getUserId(), id)
                 .orElseThrow(() -> new RuntimeException("JdbcMeta 객체를 찾을 수 없습니다."));
 
         // 찾은 객체를 업데이트합니다.
         jdbcMeta.setServerUrl(jdbcUrl);
         jdbcMeta.setTableName(table);
-        // 기타 필요한 컬럼들도 업데이트할 수 있습니다.
 
         jdbcMeta = jdbcMetaRepository.save(jdbcMeta);
         return JdbcMetaDto.of(jdbcMeta);

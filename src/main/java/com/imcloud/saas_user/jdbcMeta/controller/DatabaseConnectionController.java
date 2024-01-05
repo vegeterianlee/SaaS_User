@@ -97,9 +97,10 @@ public class DatabaseConnectionController {
     @Operation(summary = "Update JDBC Meta Data", description = "기존의 JdbcMeta 데이터를 업데이트합니다.")
     public ApiResponse<JdbcMetaDto> updateJdbcMeta(
             @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @RequestParam Long id,
             @RequestParam String jdbcUrl,
             @RequestParam String table) {
-        JdbcMetaDto jdbcMetaDto = databaseConnectionService.updateJdbcMeta(userDetails, jdbcUrl, table);
+        JdbcMetaDto jdbcMetaDto = databaseConnectionService.updateJdbcMeta(userDetails, id, jdbcUrl, table);
         return ApiResponse.successOf(HttpStatus.OK, jdbcMetaDto);
     }
 
