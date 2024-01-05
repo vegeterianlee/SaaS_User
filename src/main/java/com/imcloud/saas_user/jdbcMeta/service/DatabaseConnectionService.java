@@ -141,7 +141,7 @@ public class DatabaseConnectionService {
 
 
     @Transactional
-    public JdbcMetaDto updateJdbcMeta (UserDetailsImpl userDetails, Long id, String jdbcUrl, String table) {
+    public JdbcMetaDto updateJdbcMeta (UserDetailsImpl userDetails, Long id, String jdbcUrl, String table) throws URISyntaxException {
         Member member = memberRepository.findByUserId(userDetails.getUser().getUserId()).orElseThrow(
                 () -> new EntityNotFoundException(ErrorMessage.MEMBER_NOT_FOUND.getMessage())
         );
@@ -153,6 +153,31 @@ public class DatabaseConnectionService {
         // 찾은 객체를 업데이트합니다.
         jdbcMeta.setServerUrl(jdbcUrl);
         jdbcMeta.setTableName(table);
+
+        // JDBC URL을 파싱하여 필요한 정보를 추출합니다.
+        URI jdbcUri = new URI(jdbcUrl.substring(5)); // "jdbc:" 부분을 제거합니다.
+
+        String userInfo = jdbcUri.getUserInfo();
+        if (userInfo == null) {
+            throw new IllegalArgumentException("JDBC URL이 올바르지 않습니다.");
+        }
+
+        String[] userParts = userInfo.split(":", 2);
+        String dbUser = userParts[0];
+        String dbPassword = userParts[1];
+
+        String host = jdbcUri.getHost();
+        int port = jdbcUri.getPort(); // 포트는 int 타입으로 파싱됩니다.
+
+        // 데이터베이스 이름은 경로의 첫 번째 '/' 이후의 부분입니다.
+        String path = jdbcUri.getPath();
+        String database = path.startsWith("/") ? path.substring(1) : path;
+
+        jdbcMeta.setDbUser(dbUser);
+        jdbcMeta.setDbPassword(dbPassword);
+        jdbcMeta.setHostName(host);
+        jdbcMeta.setPortName(port);
+        jdbcMeta.setUserDatabase(database);
 
         jdbcMeta = jdbcMetaRepository.save(jdbcMeta);
         return JdbcMetaDto.of(jdbcMeta);
