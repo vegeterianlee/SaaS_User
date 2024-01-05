@@ -249,18 +249,25 @@ public class MemberService {
 
     private void sendPasswordResetEmail(String email, String newPassword) {
         try {
-            //JavaMailSender (spring에서 제공하는 이메일 전송 인터페이스)
-            //JavaMailSender 객체로 이메일 전송
+            // JavaMailSender 객체로 이메일 전송
             MimeMessage message = mailSender.createMimeMessage();
-
-            //MimeMessage 객체를 생성하고 MimeMessageHelper를 통해 이메일의 발신자, 수신자, 제목, 본문을 설정하여 세팅
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
             helper.setFrom(myEmail);
             helper.setTo(email);
             helper.setSubject("SDGUARD 서비스의 비밀번호가 초기화 되었습니다");
-            helper.setText("임시 비밀번호는 다음과 같습니다: " + newPassword);
 
+            // HTML 컨텐츠를 사용하여 이메일 본문 꾸미기
+            String htmlContent = "<html>" +
+                    "<body>" +
+                    "<p>SDGUARD 서비스의 비밀번호가 성공적으로 초기화되었습니다.</p>" +
+                    "<h4>임시 비밀번호:</h4>" +
+                    "<p><span style='font-size:16px; color: #333;'>" + newPassword + "</span></p>" +
+                    "<p>로그인 후 비밀번호를 즉시 변경해 주세요.</p>" +
+                    "</body>" +
+                    "</html>";
+
+            helper.setText(htmlContent, true); // HTML을 사용하도록 true 설정
             mailSender.send(message);
         } catch (MessagingException e) {
             throw new RuntimeException("이메일 전송에 실패하였습니다.", e);
