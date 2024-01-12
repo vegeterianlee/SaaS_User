@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: saas-user
+#  namespace: ingress-nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: saas-user
+  template:
+    metadata:
+      labels:
+        app: saas-user
+    spec:
+      containers:
+        - name: user
+          image: vegeterian/saas:saas-user-v1.0.47
+          imagePullPolicy: Always
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "2Gi"
+            limits:
+              cpu: "3000m"
+              memory: "10Gi"
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: src
+              mountPath: /app/src
+          envFrom:
+            - configMapRef:
+                name: common-config
+          env:
+            - name: JAVA_TOOL_OPTIONS
+              value: "-Xmx8G"
+
+      volumes:
+        - name: src
+          persistentVolumeClaim:
+            claimName: user-pvc
+
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: app-group
+                    operator: In
+                    values:
+                      - utility
