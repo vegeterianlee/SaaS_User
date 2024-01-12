@@ -58,10 +58,11 @@ public class DatabaseConnectionController {
     @Operation(summary = "Create JDBC Meta Data", description = "JDBC URL과 테이블 이름을 사용하여 JdbcMeta 데이터를 생성합니다.")
     public ApiResponse<?> createJdbcMeta(
             @Parameter(hidden = true)@AuthenticationPrincipal UserDetailsImpl userDetails,
+            @RequestParam String jdbcName,
             @RequestParam String jdbcUrl,
             @RequestParam String table) {
         try {
-            JdbcMetaDto jdbcMetaDto = databaseConnectionService.createJdbcMeta(userDetails, jdbcUrl, table);
+            JdbcMetaDto jdbcMetaDto = databaseConnectionService.createJdbcMeta(userDetails, jdbcName, jdbcUrl, table);
             return ApiResponse.successOf(HttpStatus.OK, jdbcMetaDto);
         } catch (URISyntaxException e) {
             ErrorResponseDto errorResponse = ErrorResponseDto.of(URI_SYNTAX_EXCEPTION, e.getMessage());
@@ -86,10 +87,11 @@ public class DatabaseConnectionController {
             @Parameter(hidden = true)@AuthenticationPrincipal UserDetailsImpl userDetails,
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(required = false) String jdbcName,
             @RequestParam(required = false) String jdbcUrl,
             @RequestParam(required = false) String table) {
 
-        Page<JdbcMetaDto> jdbcMetas = databaseConnectionService.getJdbcMetas(page, size, userDetails, jdbcUrl, table);
+        Page<JdbcMetaDto> jdbcMetas = databaseConnectionService.getJdbcMetas(page, size, userDetails, jdbcName, jdbcUrl, table);
         return ApiResponse.successOf(HttpStatus.OK, jdbcMetas);
     }
 
@@ -98,9 +100,10 @@ public class DatabaseConnectionController {
     public ApiResponse<JdbcMetaDto> updateJdbcMeta  (
             @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails,
             @RequestParam Long id,
+            @RequestParam String jdbcName,
             @RequestParam String jdbcUrl,
             @RequestParam String table) throws URISyntaxException {
-        JdbcMetaDto jdbcMetaDto = databaseConnectionService.updateJdbcMeta(userDetails, id, jdbcUrl, table);
+        JdbcMetaDto jdbcMetaDto = databaseConnectionService.updateJdbcMeta(userDetails, id, jdbcName, jdbcUrl, table);
         return ApiResponse.successOf(HttpStatus.OK, jdbcMetaDto);
     }
 

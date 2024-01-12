@@ -37,13 +37,13 @@ public interface BoardRepository extends JpaRepository<Board, Long>, JpaSpecific
     })
     Page<Board> findAll(Pageable pageable);
 
-    @Query("select b from boards b where b.member.role = 'ADMIN' ORDER BY b.modifiedAt DESC")
+    @Query("select b from boards b where b.member.role = 'ADMIN' ORDER BY b.id DESC")
     @EntityGraph(attributePaths = {
             "member"
     })
     Page<Board> findBoardsByAdminRole(Pageable pageable);
 
-    @Query("select b from boards b where b.member.role = 'USER' ORDER BY b.modifiedAt DESC")
+    @Query("select b from boards b where b.member.role = 'USER' ORDER BY b.id DESC")
     @EntityGraph(attributePaths = {
             "member"
     })

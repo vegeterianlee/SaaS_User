@@ -40,6 +40,14 @@ public class FileActionHistory extends Timestamped {
     @Column
     private Long fileActionId;
 
+    // 삭제 플래그 (true: 삭제됨, false: 활성 상태)
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private Boolean deletedFlag;
+
+    // 삭제된 날짜
+    @Column
+    private LocalDateTime deletedAt;
+
 
     // 정적 팩토리 메소드 추가
     public static FileActionHistory create(FileAction fileAction, FileActionType actionType,
@@ -50,6 +58,7 @@ public class FileActionHistory extends Timestamped {
                 .fileName(fileAction.getFileName())
                 .objectKey(fileAction.getObjectKey())
                 .actionType(actionType)
+                .deletedFlag(false)
                 .actionTime(LocalDateTime.now())
                 .build();
     }

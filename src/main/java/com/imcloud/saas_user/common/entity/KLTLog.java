@@ -5,6 +5,7 @@ import javax.persistence.Table;
 import javax.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -31,12 +32,21 @@ public class KLTLog extends Timestamped {
     @Column
     private LocalDate lastApiCallDate;
 
+    // 삭제 플래그 (true: 삭제됨, false: 활성 상태)
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private Boolean deletedFlag;
+
+    // 삭제된 날짜
+    @Column
+    private LocalDateTime deletedAt;
+
     public static KLTLog create(String userId,  Long networkTraffic) {
         return KLTLog.builder()
                 .userId(userId)
                 .kltApiCalls(0L)
                 .networkTraffic(networkTraffic)
                 .lastApiCallDate(LocalDate.now())
+                .deletedFlag(false)
                 .build();
     }
 }

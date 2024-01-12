@@ -15,6 +15,9 @@ public class JdbcMetaDto {
     @Schema(type = "integer", example = "1", description = "메타 데이터 ID")
     private Long id;
 
+    @Schema(type = "string", example = "imcloud", description = "jdbc 정보 명칭")
+    private String jdbcName;
+
     @Schema(type = "string", example = "jdbc:mysql://host:pw@localhost:3306/database", description = "서버 URL")
     private String serverUrl;
 
@@ -45,6 +48,7 @@ public class JdbcMetaDto {
     public static JdbcMetaDto of(JdbcMeta jdbcMeta) {
         return JdbcMetaDto.builder()
                 .id(jdbcMeta.getId())
+                .jdbcName(jdbcMeta.getJdbcName())
                 .serverUrl(jdbcMeta.getServerUrl())
                 .userId(jdbcMeta.getUserId())
                 .database(jdbcMeta.getUserDatabase())

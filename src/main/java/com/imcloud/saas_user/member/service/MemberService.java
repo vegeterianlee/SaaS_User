@@ -55,7 +55,7 @@ public class MemberService {
 
     private final JwtUtil jwtUtil;
     private final PasswordEncoder passwordEncoder;
-//    private final UserEventProducer userEventProducer;
+    //    private final UserEventProducer userEventProducer;
     private final MemberRepository memberRepository;
     private final SubscriptionRepository subscriptionRepository;
     private final UserSessionRepository userSessionRepository;
@@ -116,6 +116,7 @@ public class MemberService {
                 .loginTime(LocalDateTime.now())
                 .userStatus(true)
                 .expirationTime(LocalDateTime.now().plusHours(1)) // 1시간 후 만료
+                .deletedFlag(false)
                 .build();
         userSessionRepository.save(userSession);
 
@@ -359,12 +360,15 @@ public class MemberService {
         return MemberResponseDto.of(member);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public void deleteMember(UserDetailsImpl userDetails) {
         // 사용자 확인
         Member member = memberRepository.findByUserId(userDetails.getUser().getUserId()).orElseThrow(
                 () -> new EntityNotFoundException(ErrorMessage.WRONG_USERID.getMessage())
         );
+
+        // 모든 관련 엔티티의 삭제 플래그 설정
+//        markEntitiesAsDeleted(member.getUserId());
 
         // 구독 정보 조회
         Optional<Subscription> optionalSubscription = subscriptionRepository.findByUserIdAndIsActive(member.getUserId(), true);
@@ -379,6 +383,19 @@ public class MemberService {
         // 회원 삭제
         memberRepository.delete(member);
     }
+
+//    private void markEntitiesAsDeleted(String userId) {
+//        // 여기서는 FileActionHistory의 예시를 들고 있습니다. 필요한 다른 테이블도 같은 방식으로 처리할 수 있습니다.
+//        List<FileActionHistory> fileActionHistories = fileActionHistoryRepository.findByUserId(userId);
+//        for (FileActionHistory history : fileActionHistories) {
+//            history.markAsDeleted();
+//        }
+//        // 다른 테이블들도 유사하게 처리
+//
+//        // 변경 사항 저장
+//        fileActionHistoryRepository.saveAll(fileActionHistories);
+//        // 다른 테이블들도 유사하게 저장
+//    }
 
     @Transactional
     public void promoteToAdmin(UserDetailsImpl userDetails, String adminToken) {
