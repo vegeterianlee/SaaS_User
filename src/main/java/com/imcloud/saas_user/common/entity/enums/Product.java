@@ -1,14 +1,14 @@
 package com.imcloud.saas_user.common.entity.enums;
 
-import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @Getter
 public enum Product {
-    STANDARD(17, 1, 1024*1024L, 500000,"BASIC", false, false),
-    PREMIUM(18, 2, 10240*1024L, 700000,"BASIC", true, false),
-    ENTERPRISE(18, 5, 51200*1024L, 1000000, "ADVANCED", true, true);
+    STANDARD(18, 1, 100 * 1024 * 1024L, 300000,"BASIC", false, false),
+    PREMIUM(18, 2, 200 * 1024 * 1024L, 800000,"BASIC", true, false),
+    ENTERPRISE(18, 5, 1024 * 1024 * 1024L, 2000000, "ADVANCED", true, true),
+    FREE_PLAN(0, 1, 0L, 0, "BASIC", false, false); // 구독을 하지 않는 경우 또는 무료 플랜
 
     private final int numOfTechniques;
 
@@ -34,5 +34,11 @@ public enum Product {
         this.isKeyProvided = isKeyProvided;
         this.isEncrypted = isEncrypted;
     }
+
+    public String getDisplayName() {
+        return this.name();
+    }
 }
+
+
 

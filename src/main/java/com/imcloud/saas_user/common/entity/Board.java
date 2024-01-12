@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 import java.util.Set;
 
 @Entity(name = "boards")
@@ -32,6 +33,14 @@ public class Board extends Timestamped {
 
     @Column(nullable = false, columnDefinition = "boolean default false")
     private Boolean hasAdminComment;
+
+    // 삭제 플래그 (true: 삭제됨, false: 활성 상태)
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private Boolean deletedFlag;
+
+    // 삭제된 날짜
+    @Column
+    private LocalDateTime deletedAt;
 
     @ManyToOne
     private Member member;
@@ -60,6 +69,7 @@ public class Board extends Timestamped {
                 .content(dto.getContent())
                 .viewCount(0L)
                 .hasAdminComment(isCommentedByAdmin)
+                .deletedFlag(false)
                 .member(member)
                 .build();
     }

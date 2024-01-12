@@ -39,7 +39,6 @@ public class SignupRequestDto {
     private String institution;
 
 
-
    /* //@DateValid(message = "8자리의 yyyy-MM-dd 형식이어야 합니다.", pattern = "yyyy-MM-dd")
     @DateTimeFormat(pattern = "yyyyMMdd")
     @PastOrPresent

@@ -42,13 +42,13 @@ public class BoardController {
     }
 
     @GetMapping("/adminBoards")
+    @SecurityRequirements()
     @Operation(summary = "ADMIN 권한을 가진 사용자의 게시글 조회 (made by ADMIN)", description = "Page starts with 1, sort in descending order")
     public ApiResponse<Page<BoardResponseDto>> getAdminBoards(
             @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer size,
-            @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails
+            @RequestParam(defaultValue = "10") Integer size
     ) {
-        return ApiResponse.successOf(HttpStatus.OK, boardService.getAdminBoards(page, size, userDetails));
+        return ApiResponse.successOf(HttpStatus.OK, boardService.getAdminBoards(page, size));
     }
 
     @GetMapping("/userRoleBoards")
@@ -101,14 +101,17 @@ public class BoardController {
     }
 
     @GetMapping("/searchBoards")
-    @Operation(summary = "게시글 검색 (Search boards by searchType and keyword)", description = "searchType과 keyword를 이용해 게시글 검색")
+    @Operation(summary = "게시글 검색", description = "다양한 조건을 이용해 게시글 검색")
     public ApiResponse<Page<BoardResponseDto>> search(
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
-            @RequestParam String searchType,
-            @RequestParam String keyword,
+            @RequestParam(required = false) Boolean hasAdminComment,
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) String content,
+            @RequestParam(required = false) String userRole,
             @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        return ApiResponse.successOf(HttpStatus.OK, boardService.searchBoards(page, size, userDetails, searchType, keyword));
+
+        return ApiResponse.successOf(HttpStatus.OK, boardService.searchBoards(page, size, userDetails, hasAdminComment, title, content, userRole));
     }
 
 }

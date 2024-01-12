@@ -5,12 +5,16 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
 import java.util.List;
 import java.util.Optional;
 
-public interface BoardRepository extends JpaRepository<Board, Long> {
+@Repository
+public interface BoardRepository extends JpaRepository<Board, Long>, JpaSpecificationExecutor<Board> {
     Optional<Board> findById(Long boardId);
     Optional<Board> findByTitle(String title);
 
@@ -52,7 +56,7 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
             "(:searchType = 'userId' AND b.member.userId LIKE %:keyword%) OR " +
             "(:searchType = 'hasAdminComment' AND b.hasAdminComment = CASE WHEN :keyword = 'true' THEN true ELSE false END) OR " +
             "(:searchType = 'title' AND b.title LIKE %:keyword%) OR " +
-            "(:searchType = 'content' AND b.content LIKE %:keyword%)")
+            "(:searchType = 'content' AND b.content LIKE %:keyword%) OR " +
+            "(:searchType = 'userRole' AND b.member.role = :keyword)")
     Page<Board> searchBoards(String searchType, String keyword, Pageable pageable);
-
 }

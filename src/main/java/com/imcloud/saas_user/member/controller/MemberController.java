@@ -2,6 +2,7 @@ package com.imcloud.saas_user.member.controller;
 
 import com.imcloud.saas_user.common.dto.ApiResponse;
 import com.imcloud.saas_user.common.entity.UserSession;
+import com.imcloud.saas_user.common.entity.enums.Product;
 import com.imcloud.saas_user.common.security.UserDetailsImpl;
 import com.imcloud.saas_user.member.dto.*;
 import com.imcloud.saas_user.member.service.MemberService;
@@ -79,12 +80,29 @@ public class MemberController {
         return ApiResponse.successOf(HttpStatus.OK, memberService.checkUserId(userId));
     }
 
+    @GetMapping("/product")
+    @Operation(summary = "사용자 제품 확인", description = "로그인한 사용자의 제품 정보를 반환합니다.")
+    public ApiResponse<Product> checkUserProduct(
+            @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        Product product = memberService.checkProduct(userDetails);
+        return ApiResponse.successOf(HttpStatus.OK, product);
+    }
+
     @GetMapping("/getProfile")
     @Operation(summary = "토큰으로 member 정보 조회 (Query member profile with token)", description = "Query member information with token")
     public ApiResponse<ProfileResponseDto> getUserByToken(
             @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails
     ) {
         return ApiResponse.successOf(HttpStatus.OK, memberService.getUserByToken(userDetails));
+    }
+
+    @PostMapping("/resetPassword")
+    @SecurityRequirements()
+    @Operation(summary = "비밀번호 재설정", description = "사용자의 비밀번호를 재설정하고 새 비밀번호를 이메일로 전송합니다.")
+    public ApiResponse<String> resetPassword(
+            @RequestParam String userId) {
+        memberService.resetPasswordAndSendEmail(userId);
+        return ApiResponse.successOf(HttpStatus.OK, "비밀번호 리셋 완료");
     }
 
     @GetMapping("/changePw")
@@ -131,4 +149,19 @@ public class MemberController {
         return ApiResponse.successOf(HttpStatus.OK, message);
     }
 
+    @GetMapping("/checkStorage")
+    @Operation(summary = "Check Storage Usage Status", description = "Check the status of isStorageEnabled for the user")
+    public ApiResponse<Boolean> checkStorageStatus(
+            @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        boolean isStorageEnabled = memberService.checkObj(userDetails);
+        return ApiResponse.successOf(HttpStatus.OK, isStorageEnabled);
+    }
+
+    @GetMapping("/checkKLT")
+    @Operation(summary = "Check KLT Usage Status", description = "Check the status of isKLTEnabled for the user")
+    public ApiResponse<Boolean> checkKLTStatus(
+            @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        boolean isKLTEnabled = memberService.checkKLT(userDetails);
+        return ApiResponse.successOf(HttpStatus.OK, isKLTEnabled);
+    }
 }

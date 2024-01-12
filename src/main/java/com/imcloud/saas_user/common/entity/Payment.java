@@ -48,10 +48,18 @@ public class Payment extends Timestamped {
     private String cardExpiredYear;  // 년도 (2자리)
 
     @Column
-    private String cardCvv;
+    private String cardCvc;
 
     @Column
     private String country;
+
+    // 삭제 플래그 (true: 삭제됨, false: 활성 상태)
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private Boolean deletedFlag;
+
+    // 삭제된 날짜
+    @Column
+    private LocalDateTime deletedAt;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

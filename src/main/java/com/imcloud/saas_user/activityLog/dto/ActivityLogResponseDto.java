@@ -38,6 +38,9 @@ public class ActivityLogResponseDto {
     @Schema(type = "string", example = "2023-08-14T12:00:00", description = "Created At")
     private LocalDateTime createdAt;
 
+    @Schema(type = "string", example = "2023-08-14T13:00:00", description = "Updated At")
+    private LocalDateTime modifiedAt;
+
     @Schema(type = "integer", example = "5", description = "Number of Columns in log details")
     private Integer numberOfColumns;
 
@@ -76,6 +79,7 @@ public class ActivityLogResponseDto {
                 .status(activityLog.getStatus())
                 .processingTime(activityLog.getProcessingTime())
                 .createdAt(activityLog.getCreatedAt())
+                .modifiedAt(activityLog.getModifiedAt())
                 .numberOfColumns(activityLog.getLogDetailSet() != null ? activityLog.getLogDetailSet().size() : 0);
 
         if (activityLog.getLogDetailSet() != null && !activityLog.getLogDetailSet().isEmpty()) {

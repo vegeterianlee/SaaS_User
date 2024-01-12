@@ -28,4 +28,12 @@ public class DataUsageLog extends Timestamped {
     @Column(nullable = false)
     private LocalDateTime usedAt = LocalDateTime.now();
 
+    // 삭제 플래그 (true: 삭제됨, false: 활성 상태)
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private Boolean deletedFlag;
+
+    // 삭제된 날짜
+    @Column
+    private LocalDateTime deletedAt;
+
 }
