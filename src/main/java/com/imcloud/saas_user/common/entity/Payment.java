@@ -53,6 +53,14 @@ public class Payment extends Timestamped {
     @Column
     private String country;
 
+    // 삭제 플래그 (true: 삭제됨, false: 활성 상태)
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private Boolean deletedFlag;
+
+    // 삭제된 날짜
+    @Column
+    private LocalDateTime deletedAt;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private PaymentStatus paymentStatus;

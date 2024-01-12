@@ -9,6 +9,7 @@ import java.util.List;
 public class JdbcMetaSpecifications {
 
     public static Specification<JdbcMeta> withDynamicQuery(String userId,
+                                                           String jdbcName,
                                                            String jdbcUrl,
                                                            String tableName) {
         return (root, query, cb) -> {
@@ -18,6 +19,11 @@ public class JdbcMetaSpecifications {
             if (userId != null) {
                 predicates.add(cb.equal(root.get("userId"), userId));
             }
+            // jdbcName 조건이 제공된 경우, 해당 값으로 서버 URL 필터링(like 검색)합니다.
+            if (jdbcName != null) {
+                predicates.add(cb.like(root.get("jdbcName"), "%" + jdbcName + "%"));
+            }
+
             // jdbcUrl 조건이 제공된 경우, 해당 값으로 서버 URL 필터링(like 검색)합니다.
             if (jdbcUrl != null) {
                 predicates.add(cb.like(root.get("serverUrl"), "%" + jdbcUrl + "%"));

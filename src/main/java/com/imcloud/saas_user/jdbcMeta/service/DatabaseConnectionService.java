@@ -74,7 +74,7 @@ public class DatabaseConnectionService {
         }
     }
 
-    public JdbcMetaDto createJdbcMeta(UserDetailsImpl userDetails, String jdbcUrl, String table) throws URISyntaxException, URISyntaxException {
+    public JdbcMetaDto createJdbcMeta(UserDetailsImpl userDetails, String jdbcName, String jdbcUrl, String table) throws URISyntaxException, URISyntaxException {
         Member member = memberRepository.findByUserId(userDetails.getUser().getUserId()).orElseThrow(
                 () -> new EntityNotFoundException(ErrorMessage.MEMBER_NOT_FOUND.getMessage())
         );
@@ -102,7 +102,7 @@ public class DatabaseConnectionService {
         String userId = member.getUserId();
 
         // JdbcMeta 객체를 생성하고 저장합니다.
-        JdbcMeta jdbcMeta = JdbcMeta.create(jdbcUrl, userId, database, host, dbPassword, port, table, dbUser);
+        JdbcMeta jdbcMeta = JdbcMeta.create(jdbcName, jdbcUrl, userId, database, host, dbPassword, port, table, dbUser);
         jdbcMeta = jdbcMetaRepository.save(jdbcMeta);
         return JdbcMetaDto.of(jdbcMeta);
     }
@@ -123,7 +123,7 @@ public class DatabaseConnectionService {
 
     @Transactional(readOnly = true)
     public Page<JdbcMetaDto> getJdbcMetas(Integer page, Integer size, UserDetailsImpl userDetails,
-                                          String jdbcUrl, String table) {
+                                          String jdbcName, String jdbcUrl, String table) {
 
         Member member = memberRepository.findByUserId(userDetails.getUser().getUserId()).orElseThrow(
                 () -> new EntityNotFoundException(ErrorMessage.MEMBER_NOT_FOUND.getMessage())
@@ -133,7 +133,7 @@ public class DatabaseConnectionService {
         Pageable pageable = PageRequest.of(page - 1, size);
 
         // 동적 쿼리를 생성합니다.
-        Specification<JdbcMeta> spec = JdbcMetaSpecifications.withDynamicQuery(userId, jdbcUrl, table);
+        Specification<JdbcMeta> spec = JdbcMetaSpecifications.withDynamicQuery(userId, jdbcName, jdbcUrl, table);
 
         // JdbcMeta 객체를 조회하고, DTO로 변환합니다.
         return jdbcMetaRepository.findAll(spec, pageable).map(JdbcMetaDto::of);
@@ -141,7 +141,7 @@ public class DatabaseConnectionService {
 
 
     @Transactional
-    public JdbcMetaDto updateJdbcMeta (UserDetailsImpl userDetails, Long id, String jdbcUrl, String table) throws URISyntaxException {
+    public JdbcMetaDto updateJdbcMeta (UserDetailsImpl userDetails, Long id, String jdbcName, String jdbcUrl, String table) throws URISyntaxException {
         Member member = memberRepository.findByUserId(userDetails.getUser().getUserId()).orElseThrow(
                 () -> new EntityNotFoundException(ErrorMessage.MEMBER_NOT_FOUND.getMessage())
         );
@@ -151,6 +151,7 @@ public class DatabaseConnectionService {
                 .orElseThrow(() -> new RuntimeException("JdbcMeta 객체를 찾을 수 없습니다."));
 
         // 찾은 객체를 업데이트합니다.
+        jdbcMeta.setJdbcName(jdbcName);
         jdbcMeta.setServerUrl(jdbcUrl);
         jdbcMeta.setTableName(table);
 
@@ -196,12 +197,5 @@ public class DatabaseConnectionService {
         // 찾은 객체를 삭제합니다.
         jdbcMetaRepository.delete(jdbcMeta);
     }
-
-
-
-
-
-
-
 
 }

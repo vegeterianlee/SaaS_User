@@ -41,6 +41,14 @@ public class StorageLog extends Timestamped {
     @Column(nullable = false)
     private LocalDateTime storedAt;
 
+    // 삭제 플래그 (true: 삭제됨, false: 활성 상태)
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private Boolean deletedFlag;
+
+    // 삭제된 날짜
+    @Column
+    private LocalDateTime deletedAt;
+
     public static StorageLog create(String userId, String fileName, Long networkTraffic, String objectKey) {
         return StorageLog.builder()
                 .userId(userId)
@@ -49,6 +57,7 @@ public class StorageLog extends Timestamped {
                 .fileName(fileName)
                 .objectKey(objectKey)
                 .storedAt(LocalDateTime.now())
+                .deletedFlag(false)
                 .build();
     }
 }

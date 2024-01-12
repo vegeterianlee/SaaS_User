@@ -42,13 +42,13 @@ public class BoardController {
     }
 
     @GetMapping("/adminBoards")
+    @SecurityRequirements()
     @Operation(summary = "ADMIN 권한을 가진 사용자의 게시글 조회 (made by ADMIN)", description = "Page starts with 1, sort in descending order")
     public ApiResponse<Page<BoardResponseDto>> getAdminBoards(
             @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer size,
-            @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails
+            @RequestParam(defaultValue = "10") Integer size
     ) {
-        return ApiResponse.successOf(HttpStatus.OK, boardService.getAdminBoards(page, size, userDetails));
+        return ApiResponse.successOf(HttpStatus.OK, boardService.getAdminBoards(page, size));
     }
 
     @GetMapping("/userRoleBoards")

@@ -79,6 +79,7 @@ public class Member extends Timestamped {
                 .dataUsage(0L)
                 .userToken(Product.STANDARD.getDataCapacity())
                 .product(Product.ENTERPRISE)
+
                 .build();
     }
 

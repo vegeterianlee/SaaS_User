@@ -42,6 +42,14 @@ public class FileAction extends Timestamped {
     @Column
     private LocalDateTime isDeidentifiedAt;
 
+    // 삭제 플래그 (true: 삭제됨, false: 활성 상태)
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private Boolean deletedFlag;
+
+    // 삭제된 날짜
+    @Column
+    private LocalDateTime deletedAt;
+
     /*@OneToMany(mappedBy = "fileAction", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private Set<FileActionHistory> fileActionHistorySet;*/
 
@@ -53,6 +61,7 @@ public class FileAction extends Timestamped {
                 .objectKey(objectKey)
                 .toBeDeidentified(false)
                 .isDeidentifiedTarget(false)
+                .deletedFlag(false)
                 .storedAt(LocalDateTime.now())
                 .build();
     }

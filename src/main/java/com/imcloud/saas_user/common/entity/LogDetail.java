@@ -3,6 +3,7 @@ package com.imcloud.saas_user.common.entity;
 import lombok.*;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 import java.util.Set;
 
 @Entity
@@ -32,6 +33,14 @@ public class LogDetail extends Timestamped {
 
     @Column(name = "data_size", nullable = true)
     private Long dataSize;
+
+    // 삭제 플래그 (true: 삭제됨, false: 활성 상태)
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private Boolean deletedFlag;
+
+    // 삭제된 날짜
+    @Column
+    private LocalDateTime deletedAt;
 
     @ManyToOne
     @JoinColumn(name="activity_id")
