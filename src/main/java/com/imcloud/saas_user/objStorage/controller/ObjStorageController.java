@@ -28,6 +28,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
+import static com.imcloud.saas_user.common.dto.ErrorType.IO_EXCEPTION;
+import static com.imcloud.saas_user.common.dto.ErrorType.SQL_EXCEPTION;
+
 @Tag(name = "Object Storage Management")
 @RestController
 @RequestMapping("/api/objstorage")
@@ -167,6 +170,22 @@ public class ObjStorageController {
         String url = storageService.getSignedUrl(objectKey, userDetails);
         return ApiResponse.successOf(HttpStatus.OK, url);
     }
+
+    @GetMapping("/exportDecryptedData")
+    @Operation(summary = "클라우드에 저장된 파일을 csv 타입의 string으로 반환", description = "클라우드에 저장된 파일을 csv 타입의 string으로 반환")
+    public ApiResponse<?> downloadDecryptedData(
+            @RequestParam String objectKey,
+            @Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails) {
+
+        try {
+            String csvData = storageService.getDownloadByString(objectKey, userDetails);
+            return ApiResponse.successOf(HttpStatus.OK, csvData);
+        } catch (IOException | GeneralSecurityException e) {
+            ErrorResponseDto errorResponse = ErrorResponseDto.of(IO_EXCEPTION, e.getMessage());
+            return ApiResponse.failOf(HttpStatus.INTERNAL_SERVER_ERROR, errorResponse);
+        }
+    }
+
 
     @GetMapping("/storage-duration")
     @Operation(summary = "Get storage duration for each file of the user")
