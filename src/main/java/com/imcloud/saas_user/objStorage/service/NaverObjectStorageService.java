@@ -568,6 +568,7 @@ public class NaverObjectStorageService {
                     .userId(member.getUserId())
                     .totalPrice(additionalChargeAmount)
                     .paymentStatus(PaymentStatus.UNPAID)
+                    .deletedFlag(false)
 //                    .subscription(subscription)
                     .build();
             paymentRepository.save(payment);
