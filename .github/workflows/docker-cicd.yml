@@ -1,0 +1,79 @@
+name: Docker Image CI/CD
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Docker environment
+      run: echo "IMAGE_TAG=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
+
+    - name: Login to Docker Registry
+      uses: docker/login-action@v1
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Create application-dev.properties file
+      run: |
+        echo "${{ secrets.APPLICATION_DEV_PROPERTIES }}" > src/main/resources/application-dev.properties
+    
+    - name: Build and push Docker image
+      run: |
+        docker build . --file Dockerfile --tag vegeterian/saas:saas-user-$IMAGE_TAG
+        docker push vegeterian/saas:saas-user-$IMAGE_TAG
+
+    - name: Update Kubernetes deployment file
+      run: |
+        sed -i 's|vegeterian/saas:saas-user.*|vegeterian/saas:saas-user-'$IMAGE_TAG'|' k8s/user-deployment.yml
+   
+    - name: Set up Ncloud environment variables
+      run: |
+        echo "NCLOUD_ACCESS_KEY=${{ secrets.NCLOUD_ACCESS_KEY_ID }}" >> $GITHUB_ENV
+        echo "NCLOUD_SECRET_KEY=${{ secrets.NCLOUD_SECRET_KEY }}" >> $GITHUB_ENV
+        echo "NCLOUD_API_GW=https://ncloud.apigw.ntruss.com" >> $GITHUB_ENV
+    
+    - name: Create ncloud configuration
+      run: |
+        mkdir -p /home/runner/.ncloud
+        echo "[default]" > /home/runner/.ncloud/configure
+        echo "ncloud_access_key_id=${{ secrets.NCLOUD_ACCESS_KEY_ID }}" >> /home/runner/.ncloud/configure
+        echo "ncloud_secret_key=${{ secrets.NCLOUD_SECRET_KEY }}" >> /home/runner/.ncloud/configure
+    
+    - name: Install ncp-iam-authenticator
+      run: |
+        curl -o ncp-iam-authenticator -L https://github.com/NaverCloudPlatform/ncp-iam-authenticator/releases/latest/download/ncp-iam-authenticator_linux_amd64
+        chmod +x ncp-iam-authenticator
+        mkdir -p $HOME/bin
+        mv ncp-iam-authenticator $HOME/bin
+
+    - name: Debug ncp-iam-authenticator
+      run: |
+        $HOME/bin/ncp-iam-authenticator help
+        cat /home/runner/.ncloud/configure
+        echo "Access Key ID: ${{ secrets.NCLOUD_ACCESS_KEY_ID }}"
+        echo "Secret Key: ${{ secrets.NCLOUD_SECRET_KEY }}"
+    
+
+    - name: Set up Kubeconfig
+      run: |
+        echo "${{ secrets.KUBECONFIG }}" > kubeconfig
+        echo "KUBECONFIG=$(pwd)/kubeconfig" >> $GITHUB_ENV
+        echo "PATH=$PATH:$HOME/bin" >> $GITHUB_ENV
+
+    - name: Kubectl apply
+      run: |
+        export NCLOUD_ACCESS_KEY_ID=${{ secrets.NCLOUD_ACCESS_KEY_ID }}
+        export NCLOUD_SECRET_KEY=${{ secrets.NCLOUD_SECRET_KEY }}
+        kubectl apply -f ./k8s/user-deployment.yml
+
+    - name: Check deployment status
+      run: |
+        kubectl rollout status deployment/saas-user
