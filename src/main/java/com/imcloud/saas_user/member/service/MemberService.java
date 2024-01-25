@@ -173,8 +173,13 @@ public class MemberService {
     }
 
 
-    public Boolean checkUserId(String userId) {
-        return memberRepository.findByUserId(userId).isPresent();
+    public MemberResponseDto checkUserInfo(UserDetailsImpl userDetails) {
+        // 사용자 확인
+        Member member = memberRepository.findByUserId(userDetails.getUser().getUserId()).orElseThrow(
+                () -> new EntityNotFoundException(ErrorMessage.WRONG_USERID.getMessage())
+        );
+
+        return MemberResponseDto.of(member);
     }
 
     public Product checkProduct(UserDetailsImpl userDetails) {

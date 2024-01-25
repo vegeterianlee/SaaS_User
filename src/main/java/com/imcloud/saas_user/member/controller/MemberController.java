@@ -73,11 +73,12 @@ public class MemberController {
         return ApiResponse.successOf(HttpStatus.OK, memberService.updateProfile(userDetails, dto));
     }
 
-    @GetMapping("/userId/duplicate")
+    @GetMapping("/userInfo")
     @SecurityRequirements()
-    @Operation(summary = "아이디 중복체크 (Duplicate ID check)", description = "아이디 중복이면 true, 중복이 아니면 false (If the ID is duplicate, it's true. If it's not duplicate, it's false)")
-    public ApiResponse<Boolean> checkEmail(@RequestParam String userId){
-        return ApiResponse.successOf(HttpStatus.OK, memberService.checkUserId(userId));
+    @Operation(summary = "유저 정보확인", description = "로그인 후 확인되는 유저정보를 토큰 인증을 통해서만 확인하는 로직")
+    public ApiResponse<MemberResponseDto> checkUserInfo(@Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails
+    ){
+        return ApiResponse.successOf(HttpStatus.OK, memberService.checkUserInfo(userDetails));
     }
 
     @GetMapping("/product")
